@@ -1,14 +1,15 @@
 #include "../include/game_concepts.hpp"
 
 #include <cstddef>
+#include <memory>
 
 int main(int argc, char* argv[]){
 
 	game g = game(21);
 
-	g.add_player(player(RED,10,RANDOM));
-	g.add_player(player(GREEN,10,RANDOM));
-	g.add_player(player(BLUE,10,RANDOM));
+	g.add_player(std::make_unique<random_player>(RED,10));
+	g.add_player(std::make_unique<random_player>(YELLOW,10));
+	g.add_player(std::make_unique<random_player>(BLUE,10));
 
 	//adding elections
 	for (size_t i=0; i<10; ++i) {
@@ -19,7 +20,7 @@ int main(int argc, char* argv[]){
 	for (size_t i=0; i<10; ++i) {
 		g.add_event(event(RED,2,4));
 
-		g.add_event(event(GREEN,2,4));
+		g.add_event(event(YELLOW,2,4));
 
 		g.add_event(event(BLUE,2,4));
 
@@ -31,7 +32,7 @@ int main(int argc, char* argv[]){
 		g.add_event(
 			event(CONVERGENCE,
 				event(ANY,1,1),
-				event(GREEN, 2, 2)
+				event(YELLOW, 2, 2)
 			)
 		);
 		g.add_event(
@@ -59,7 +60,7 @@ int main(int argc, char* argv[]){
 		g.add_event(
 			event(DIVERGENCE,
 				event(ANY,1,1),
-				event(GREEN, 2, 2)
+				event(YELLOW, 2, 2)
 			)
 		);
 		g.add_event(

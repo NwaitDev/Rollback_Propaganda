@@ -1,6 +1,7 @@
 # For Linux
 REQUIRED_LIBS := -lstdc++
 SRC_DIR := src
+BUILD_DIR := build
 COMPILER := g++
 INC_DIR := include
 INC_FLAGS := -I $(INC_DIR)
@@ -8,28 +9,28 @@ OTHER_FLAGS := -std=c++17 -Wextra -O2 -g
 
 ADD_LIB:=
 
+SOURCES := $(shell find $(SRC_DIR) -name '*.cpp' | sed 's|^.*/||')
+OBJECTS := $(addprefix $(BUILD_DIR)/,$(SOURCES:%.cpp=%.o))
 
-OBJS_FILES := build/main.o build/game_concepts.o
+BINARY := simulation
 
-all: build/simulation
+all: $(BINARY)
 
 build:
 	mkdir build
 
-build/game_concepts.o : $(SRC_DIR)/game_concepts.cpp $(INC_DIR)/game_concepts.hpp build
-	$(COMPILER) $< -c -o $@ $(INC_FLAGS) $(OTHER_FLAGS)
+$(BINARY) : $(OBJECTS)
+	$(COMPILER) $^ $(OTHER_FLAGS) $(INC_FLAGS) -o $@
 
-build/main.o : $(SRC_DIR)/main.cpp build
-	$(COMPILER) $< -c -o $@ -g $(INC_FLAGS) $(OTHER_FLAGS)
-
-build/simulation : $(OBJS_FILES) 
-	$(COMPILER) $^ -o $@ $(OTHER_FLAGS) $(INC_FLAGS)
+$(BUILD_DIR)/%.o : $(SRC_DIR)/%.cpp $(INC_DIR)/game_concepts.hpp build
+	$(COMPILER) $< -c $(INC_FLAGS) $(OTHER_FLAGS) -o $@
 
 run :
-	build/simulation
+	./$(BINARY)
 
 check-run :
-	valgrind -s --leak-check=full --track-origins=yes build/simulation
+	valgrind -s --leak-check=full --track-origins=yes $(BINARY)
 
 clean:
-	rm build/*
+	rm build/* $(BINARY)
+	rmdir build
