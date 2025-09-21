@@ -16,10 +16,14 @@ void game::add_player(std::unique_ptr<player> p){
 	players.push_back(std::move(p));
 }
 
-void game::play_turn(){
-	while (	(present_events.get_stealth()<players[current_player]->get_greed())
+bool game::current_player_wants_to_play_and_can(){
+	return (present_events.get_stealth()<players[current_player]->get_greed())
 			&& (present_events.get_stealth()<max_stealth)
-			&& (future_events.remaining_cards()>0) ) {
+			&& (future_events.remaining_cards()>0);
+}
+
+void game::play_turn(){
+	while (	current_player_wants_to_play_and_can() ) {
 		
 		present_events.append_from_future(future_events);
 

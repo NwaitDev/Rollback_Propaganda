@@ -58,7 +58,7 @@ void smart_player::execute(const event evt, game& g) const {
 			if ((g.get_scores_ref()[RED]>g.get_scores_ref()[YELLOW])
 				&& (g.get_scores_ref()[RED]>g.get_scores_ref()[BLUE])) {
 				for(std::unique_ptr<player>& p : g.get_players_ref()){
-					if(p->get_faction()==RED){
+					if(p->get_contract()==RED){
 						p->score_a_point();
 					}
 				}
@@ -67,7 +67,7 @@ void smart_player::execute(const event evt, game& g) const {
 			if ((g.get_scores_ref()[YELLOW]>g.get_scores_ref()[RED])
 				&& (g.get_scores_ref()[YELLOW]>g.get_scores_ref()[BLUE])) {
 				for(std::unique_ptr<player>& p : g.get_players_ref()){
-					if(p->get_faction()==YELLOW){
+					if(p->get_contract()==YELLOW){
 						p->score_a_point();
 					}
 				}
@@ -76,7 +76,7 @@ void smart_player::execute(const event evt, game& g) const {
 			if ((g.get_scores_ref()[BLUE]>g.get_scores_ref()[YELLOW])
 				&& (g.get_scores_ref()[BLUE]>g.get_scores_ref()[RED])) {
 				for(std::unique_ptr<player>& p : g.get_players_ref()){
-					if(p->get_faction()==BLUE){
+					if(p->get_contract()==BLUE){
 						p->score_a_point();
 					}
 				}
@@ -93,7 +93,7 @@ void smart_player::execute(const event evt, game& g) const {
 }
 
 void smart_player::execute_any_any(game& g, const event any1, const event any2) const{
-	enum faction my_faction = get_faction();
+	enum faction my_faction = get_contract();
 	enum faction other_faction1 = (enum faction) ((my_faction+1)%3);
 	enum faction other_faction2 = (enum faction) ((my_faction+2)%3);
 	int best_value = std::max(any1.get_value(),any2.get_value());
@@ -133,7 +133,7 @@ void smart_player::execute_any_any(game& g, const event any1, const event any2) 
 }
 
 void smart_player::execute_any_else(game& g, const event any, const event elseev) const{
-	enum faction my_faction = get_faction();
+	enum faction my_faction = get_contract();
 	enum faction other_faction1 = (enum faction) ((my_faction+1)%3);
 	enum faction other_faction2 = (enum faction) ((my_faction+2)%3);
 	int any_value = any.get_value();

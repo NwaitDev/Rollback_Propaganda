@@ -2,6 +2,7 @@
 #define __GAME_CONCEPTS__
 
 #include <cstddef>
+#include <list>
 #include <memory>
 #include <vector>
 
@@ -16,7 +17,12 @@ class game;
 class player;
 
 enum event_kind {
-	OPERATOR, PROPAGANDA, ELECTION, EXPLOSION, COLLAPSE, MISTAKE
+	OPERATOR,
+	PROPAGANDA,
+	ELECTION,
+	EXPLOSION,
+	COLLAPSE,
+	MISTAKE
 };
 
 const int factions_count = 3;
@@ -36,6 +42,22 @@ enum event_operator {
 enum strategy {
 	RANDOM,
 	SMART
+};
+
+enum shenanigan_type {
+	NOTHING, ETHER, SPELL
+};
+
+enum spell_type {
+	EUPHORIA,
+	NEURASTHENIA,
+	PRECIPITATION,
+	MEMORY_LAPSE,
+	READING,
+	ENTROPY_REVERSAL,
+	ETHER_LEAK,
+	IMMUNITY,
+	CHAPTER_SKIP
 };
 
 class event{
@@ -65,18 +87,75 @@ class event{
 	const event* right;
 };
 
+
+class shenanigan{
+	public:
+	shenanigan(int ether_val);
+	shenanigan(spell_type spell);
+	shenanigan() ;
+	shenanigan_type get_shtype();
+	int get_ether_value();
+	spell_type get_spell_type();
+
+	private:
+	shenanigan_type shtype;
+	union{
+		int ether_value;
+		spell_type spell;
+	}value;
+
+};
+
+class grimory{
+	public:
+	grimory();
+	shenanigan draw();
+	void shuffle();
+	void put_at_bottom(shenanigan card);
+
+	private:
+	std::list<shenanigan> cards = std::list<shenanigan>();
+};
+
+class hand{
+	public:
+	hand(size_t cards_limit);
+	void add_card(shenanigan card);
+	shenanigan play_card(size_t index);
+	size_t get_nb_cards();
+
+	private:
+	size_t cards_limit;
+	std::vector<shenanigan> cards = std::vector<shenanigan>();
+};
+
+class lair {
+	public:
+	void store_ether(shenanigan card);
+	std::list<shenanigan> cast_spell(shenanigan card, size_t consumed_ether);
+	void prepare_shenanigan(shenanigan card);
+	shenanigan reveal_shenanigan();
+
+	private:
+	std::list<shenanigan> ether_pool = std::list<shenanigan>();
+	shenanigan prepared_shenanigan = NULL;
+};
+
 class player{
 	public:
 	player(faction faction, stealth greed, strategy strat);
 	void score_a_point();
 	void view() const;
 	int get_score();
-	enum faction get_faction() const;
+	enum faction get_contract() const;
 	int get_greed();
 	virtual void execute(const event, game&) const;
 
 	private:
-	enum faction secret_faction;
+	grimory deck;
+	hand cards_in_hand;
+	lair cards_in_play;
+	enum faction contract;
 	stealth greed;
 	int points = 0;
 	strategy strat;
@@ -148,6 +227,7 @@ class past{
 class game{
 	public:
 	game(stealth max_stealth);
+	bool current_player_wants_to_play_and_can();
 	void add_player(std::unique_ptr<player> p);
 	void add_event(const event& e);
 	void play_turn();

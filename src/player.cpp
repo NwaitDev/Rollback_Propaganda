@@ -2,7 +2,7 @@
 #include <iostream>
 
 
-player::player(enum faction faction, stealth greed, strategy strat) : secret_faction(faction), greed(greed), strat(strat){}
+player::player(enum faction faction, stealth greed, strategy strat) : contract(faction), greed(greed), strat(strat){}
 
 void player::execute(const event, game&) const {std::cout<<"shouldn't appear"<<std::endl;}
 
@@ -18,8 +18,8 @@ int player::get_score(){
 	return points;
 }
 
-faction player::get_faction() const{
-	return secret_faction;
+faction player::get_contract() const{
+	return contract;
 }
 
 int player::get_greed(){
@@ -28,7 +28,7 @@ int player::get_greed(){
 
 void player::view() const{
 	std::cout<<"faction: ";
-	switch (secret_faction) {
+	switch (contract) {
 
         case RED:
 		std::cout<<"RED";

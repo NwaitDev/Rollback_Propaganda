@@ -60,7 +60,7 @@ void random_player::execute(event evt, game& g) const{
 			if ((g.get_scores_ref()[RED]>g.get_scores_ref()[YELLOW])
 				&& (g.get_scores_ref()[RED]>g.get_scores_ref()[BLUE])) {
 				for(std::unique_ptr<player>& p : g.get_players_ref()){
-					if(p->get_faction()==RED){
+					if(p->get_contract()==RED){
 						p->score_a_point();
 					}
 				}
@@ -69,7 +69,7 @@ void random_player::execute(event evt, game& g) const{
 			if ((g.get_scores_ref()[YELLOW]>g.get_scores_ref()[RED])
 				&& (g.get_scores_ref()[YELLOW]>g.get_scores_ref()[BLUE])) {
 				for(std::unique_ptr<player>& p : g.get_players_ref()){
-					if(p->get_faction()==YELLOW){
+					if(p->get_contract()==YELLOW){
 						p->score_a_point();
 					}
 				}
@@ -78,7 +78,7 @@ void random_player::execute(event evt, game& g) const{
 			if ((g.get_scores_ref()[BLUE]>g.get_scores_ref()[YELLOW])
 				&& (g.get_scores_ref()[BLUE]>g.get_scores_ref()[RED])) {
 				for(std::unique_ptr<player>& p : g.get_players_ref()){
-					if(p->get_faction()==BLUE){
+					if(p->get_contract()==BLUE){
 						p->score_a_point();
 					}
 				}
