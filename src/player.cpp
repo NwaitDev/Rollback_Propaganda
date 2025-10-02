@@ -10,6 +10,9 @@ void player::execute_any_any(game&, const event, const event) const {std::cout<<
 
 void player::execute_any_else(game&, const event, const event) const {std::cout<<"shouldn't appear"<<std::endl;}
 
+void prepare(){std::cout<<"shouldn't appear"<<std::endl;};
+void do_shenanigans(game& g){std::cout<<"shouldn't appear"<<std::endl;};
+
 void player::score_a_point(){
 	this->points++;
 }
@@ -57,3 +60,4 @@ void player::view() const{
     }
     std::cout<<" / greed: " << greed << " (score :" << points << ")";
 }
+

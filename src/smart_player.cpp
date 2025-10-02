@@ -178,3 +178,7 @@ void smart_player::execute_any_else(game& g, const event any, const event elseev
 	}
 	
 }
+
+
+void smart_player::prepare(){std::cout<<"shouldn't appear"<<std::endl;};
+void smart_player::do_shenanigans(game& g){std::cout<<"shouldn't appear"<<std::endl;};

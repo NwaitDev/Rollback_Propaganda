@@ -112,6 +112,7 @@ class grimory{
 	shenanigan draw();
 	void shuffle();
 	void put_at_bottom(shenanigan card);
+	inline bool is_empty(){return cards.empty();}
 
 	private:
 	std::list<shenanigan> cards = std::list<shenanigan>();
@@ -123,6 +124,7 @@ class hand{
 	void add_card(shenanigan card);
 	shenanigan play_card(size_t index);
 	size_t get_nb_cards();
+	void draw_up_to_limit(grimory);
 
 	private:
 	size_t cards_limit;
@@ -150,10 +152,12 @@ class player{
 	enum faction get_contract() const;
 	int get_greed();
 	virtual void execute(const event, game&) const;
+	virtual void prepare();
+	virtual void do_shenanigans(game& g);
 
 	private:
 	grimory deck;
-	hand cards_in_hand;
+	hand cards_in_hand = hand(4);
 	lair cards_in_play;
 	enum faction contract;
 	stealth greed;
@@ -167,7 +171,9 @@ class random_player : public player {
 	public:
 	random_player(faction f, stealth greed);
 	void execute(event, game&) const override;
-	
+	void prepare() override;
+	void do_shenanigans(game& g) override;
+
 	private:
 	void execute_any_any(game&, const event, const event) const override;
 	void execute_any_else(game&, const event, const event) const override;
@@ -181,6 +187,9 @@ class smart_player : public player {
 	private:
 	void execute_any_any(game&, const event, const event) const override;
 	void execute_any_else(game&, const event, const event) const override;
+	void prepare() override;
+	void do_shenanigans(game& g) override;
+
 };
 
 
@@ -242,7 +251,11 @@ class game{
 	void shuffle();
 
 	private:
-
+	void preparation_phase();
+	void reveal_phase();
+	void shenanigan_phase();
+	void execution_phase();
+	void cleanup_phase();
 	past past_events;
 	present present_events;
 	future future_events;

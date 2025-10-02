@@ -1,4 +1,5 @@
 #include "../include/game_concepts.hpp"
+#include <cstddef>
 #include <iostream>
 #include <memory>
 #include <ostream>
@@ -22,7 +23,7 @@ bool game::current_player_wants_to_play_and_can(){
 			&& (future_events.remaining_cards()>0);
 }
 
-void game::play_turn(){
+void game::reveal_phase(){
 	while (	current_player_wants_to_play_and_can() ) {
 		
 		present_events.append_from_future(future_events);
@@ -62,12 +63,43 @@ void game::play_turn(){
 				break;
         }
     }
+}
+
+void game::execution_phase(){
 	while (!present_events.is_empty()) {
 		past_events.pass(present_events.execute(*this, *players[current_player]));
 	}
+}
+
+void game::cleanup_phase(){
 	present_events.set_stealth(0);
 	current_player = (current_player+1) % players.size();
 	elapsed_turns++;
+}
+
+void game::preparation_phase(){
+	for (std::unique_ptr<player>& p : players) {
+		p->prepare();
+	}
+}
+
+void game::shenanigan_phase(){
+	for (size_t i = 0; i < players.size(); ++i) {
+		players[(current_player+i)%players.size()]->do_shenanigans(*this);
+	}
+}
+
+void game::play_turn(){
+	
+	preparation_phase();
+
+	reveal_phase();
+
+	shenanigan_phase();
+
+	execution_phase();
+
+	cleanup_phase();
 }
 
 

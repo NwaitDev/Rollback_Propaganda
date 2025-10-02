@@ -2,9 +2,7 @@
 #include <algorithm>
 #include <random>
 
-grimory::grimory(){
-
-}
+grimory::grimory(){}
 
 shenanigan grimory::draw(){
 	shenanigan card = cards.back();

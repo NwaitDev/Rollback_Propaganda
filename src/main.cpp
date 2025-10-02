@@ -3,10 +3,7 @@
 #include <cstddef>
 #include <memory>
 
-int main(int argc, char* argv[]){
-
-	game g = game(21);
-
+void init_game(game& g){
 	g.add_player(std::make_unique<random_player>(RED,10));
 	g.add_player(std::make_unique<random_player>(YELLOW,10));
 	g.add_player(std::make_unique<random_player>(BLUE,10));
@@ -94,16 +91,20 @@ int main(int argc, char* argv[]){
 	for (size_t i=0; i<5; ++i) {
 		g.add_event(event(MISTAKE,0,2));
 	}
+}
 
-	g.view();
+
+int main(int argc, char* argv[]){
+
+	game g = game(21);
+
+	init_game(g);
 
 	g.shuffle();
 
 	g.view();
 
-	g.play_game();
-
-	g.view();
+	// g.play_game();
 
 	return 0;
 }

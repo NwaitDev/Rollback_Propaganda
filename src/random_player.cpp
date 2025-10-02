@@ -108,3 +108,6 @@ void random_player::execute_any_else(game& g, const event any, const event elsee
 	g.get_scores_ref()[elseev.get_faction()]+=elseev.get_value();
 	g.get_scores_ref()[rnd_faction]+=any.get_value();
 }
+
+void random_player::prepare(){std::cout<<"shouldn't appear"<<std::endl;};
+void random_player::do_shenanigans(game& g){std::cout<<"shouldn't appear"<<std::endl;};
