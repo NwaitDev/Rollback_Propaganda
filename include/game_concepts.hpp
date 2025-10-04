@@ -13,6 +13,7 @@ class event;
 class future;
 class past;
 class present;
+class shenanigan;
 class game;
 class player;
 
@@ -66,6 +67,7 @@ class event{
 	event(event_kind ekind, stealth stealth, int value);
 	event(event_operator etype, const event& left, const event& right);
 
+	void gets_targeted_by(shenanigan spell, int spent_ether);
 	void view() const ;
 	stealth get_stealth() const;
 	int get_value() const;
@@ -137,6 +139,7 @@ class lair {
 	std::list<shenanigan> cast_spell(shenanigan card, size_t consumed_ether);
 	void prepare_shenanigan(shenanigan card);
 	shenanigan reveal_shenanigan();
+	inline unsigned int available_ether(){ return ether_pool.size();}
 
 	private:
 	std::list<shenanigan> ether_pool = std::list<shenanigan>();
@@ -155,11 +158,13 @@ class player{
 	virtual void prepare();
 	virtual void do_shenanigans(game& g);
 
-	private:
+	protected:
 	grimory deck;
 	hand cards_in_hand = hand(4);
 	lair cards_in_play;
 	enum faction contract;
+
+	private:
 	stealth greed;
 	int points = 0;
 	strategy strat;
@@ -205,6 +210,7 @@ class present{
 	const event draw_last();
 	bool is_empty() const;
 	void view();
+	const std::vector<event> show_events();
 
 	private:
 	std::vector<event> present = std::vector<event>();
@@ -250,15 +256,16 @@ class game{
 
 	void shuffle();
 
+	past past_events;
+	present present_events;
+	future future_events;
+
 	private:
 	void preparation_phase();
 	void reveal_phase();
 	void shenanigan_phase();
 	void execution_phase();
 	void cleanup_phase();
-	past past_events;
-	present present_events;
-	future future_events;
 
 	std::vector<int> scores = std::vector<int>({0,0,0});
 	std::vector<std::unique_ptr<player>> players = std::vector<std::unique_ptr<player>>();

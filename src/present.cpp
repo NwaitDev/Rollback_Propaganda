@@ -86,3 +86,6 @@ bool present::is_empty() const {
 	return present.empty();
 }
 
+const std::vector<event> present::show_events(){
+	return present;
+};

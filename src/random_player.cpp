@@ -1,4 +1,5 @@
 #include "../include/game_concepts.hpp"
+#include <cstddef>
 #include <cstdlib>
 #include <iostream>
 
@@ -109,5 +110,46 @@ void random_player::execute_any_else(game& g, const event any, const event elsee
 	g.get_scores_ref()[rnd_faction]+=any.get_value();
 }
 
-void random_player::prepare(){std::cout<<"shouldn't appear"<<std::endl;};
-void random_player::do_shenanigans(game& g){std::cout<<"shouldn't appear"<<std::endl;};
+void random_player::prepare(){
+	size_t card_selected_id = rand()% cards_in_hand.get_nb_cards();
+	cards_in_play.prepare_shenanigan(cards_in_hand.play_card(card_selected_id));
+};
+
+void random_player::do_shenanigans(game& g){
+	shenanigan card = cards_in_play.reveal_shenanigan();
+	if(rand()%2==1){
+		deck.put_at_bottom(card);
+		return;
+	}
+	if(card.get_shtype()==ETHER){
+		cards_in_play.store_ether(card);
+		return;
+	}
+	unsigned int to_spend_ether = rand()%(cards_in_play.available_ether()+1);
+
+	switch (card.get_spell_type()) {
+        case EUPHORIA:
+			size_t nb_propaganda = 0;
+			
+			for (event evt : g.present_events.show_events()) {
+				
+			}
+			if (nb_propaganda==0) {
+				deck.put_at_bottom(card);
+				return;
+			}
+			g.present_events.show_events().at();
+			break;
+			
+        case NEURASTHENIA:
+        case PRECIPITATION:
+        case MEMORY_LAPSE:
+        case READING:
+        case ENTROPY_REVERSAL:
+        case ETHER_LEAK:
+        case IMMUNITY:
+        case CHAPTER_SKIP:
+        break;
+        
+    }
+};
