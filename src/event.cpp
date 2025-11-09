@@ -4,7 +4,7 @@
 
 
 event::event(faction faction, int value, ::stealth stealth)
-: kind(PROPAGANDA), type({.faction = faction}), value(value), st(stealth){}
+: kind(PROPAGANDA), type({.faction = faction}), value(value), st(stealth), modification(0){}
 
 event::event(event_kind ekind, ::stealth stealth, int value){
 	if ((ekind!=PROPAGANDA) && (ekind!=OPERATOR)) {
@@ -18,7 +18,7 @@ event::event(event_kind ekind, ::stealth stealth, int value){
 }
 
 
-event::event(event_operator op, const event& left, const event& right)
+event::event(event_operator op, event& left, event& right)
 : kind(OPERATOR), type({.op = op}), value(0), left(&left), right(&right) {}
 
 
@@ -87,13 +87,13 @@ int event::get_value() const {
 		std::cout<<"error thrown by "; view();
 		throw std::runtime_error("can't get the value of a non-propaganda event");
 	}
-	return value;
+	return value+modification;
 }
 
 enum faction event::get_faction() const {
 	if (get_kind()!=PROPAGANDA) {
 		std::cout<<"error thrown by "; view();
-		throw std::runtime_error("can't get the value of a non-propaganda event");
+		throw std::runtime_error("can't get the faction of a non-propaganda event");
 	}
 	return type.faction;
 }
@@ -110,10 +110,42 @@ enum event_operator event::get_operator() const {
 	return type.op;
 }
 
-const event& event::get_left() const {
+event& event::get_left() {
 	return *left;
 }
 
-const event& event::get_right() const {
+event& event::get_right(){
 	return *right;
 }
+
+void event::modify(const int modif) { 
+	switch (get_kind()) {
+        case OPERATOR:
+		modification = modif;
+		get_left().modify(modif);
+		break;
+        case PROPAGANDA:
+		modification = modif;
+        case ELECTION:
+        case EXPLOSION:
+        case COLLAPSE:
+        case MISTAKE:
+          break;
+        }
+}
+
+void event::reset() { 
+	switch (get_kind()) {
+        case OPERATOR:
+		modification = 0;
+		get_left().reset();
+		break;
+        case PROPAGANDA:
+		modification = 0;
+        case ELECTION:
+        case EXPLOSION:
+        case COLLAPSE:
+        case MISTAKE:
+          break;
+        }
+ }

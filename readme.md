@@ -85,3 +85,14 @@ Lae mage avec le score le plus élevé remporte la partie. En cas d'égalité, c
 
 - Retournement de situation : *Événement qui doit être résolu dès qu'il est révélé.* inverse l'ordre de résolution des événements à la phase de Résolution.
 
+-------------------
+Choses à implanter:
+
+- finir les effets des cartes manigances pour le random player
+- les effets des cartes manigances pour le smart player
+- pipeline de simulation et acquisition de données
+
+-------------------
+Optimisations à effectuer sur le modèle : 
+
+- mettre des smart pointers partout où ce serait utile

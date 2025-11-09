@@ -2,18 +2,10 @@
 #include <cstddef>
 #include <iostream>
 
-stealth present::get_stealth() const {
-	return current_stealth;
-}
-
 const event present::draw_last(){
 	event drawn = present.back();
 	present.pop_back();
 	return drawn;
-}
-
-void present::set_stealth(const stealth& st){
-	current_stealth = st;
 }
 
 const event present::get_last_event(){
@@ -81,11 +73,3 @@ const event present::execute(game& g, player& controller) {
 	present.pop_back();
 	return to_pass;
 }
-
-bool present::is_empty() const {
-	return present.empty();
-}
-
-const std::vector<event> present::show_events(){
-	return present;
-};
