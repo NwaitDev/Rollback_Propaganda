@@ -1,0 +1,11 @@
+{
+  "name": "base",
+  "seed": 1,
+  "games": { "random_only": 5000, "with_smart": 5000 },
+  "players": 3,
+  "random_greed": 10,
+  "hand_size": 4,
+  "deck": "decks/implemented.json",
+  "events": "events/base.json",
+  "contracts": "contracts/two_per_faction.json"
+}

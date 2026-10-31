@@ -1,0 +1,8 @@
+{
+  "name": "one_per_faction",
+  "contracts": {
+    "RED": 1,
+    "YELLOW": 1,
+    "BLUE": 1
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "name": "base",
+  "events": [
+    { "count": 10, "kind": "ELECTION", "stealth": 3 },
+
+    { "count": 10, "kind": "PROPAGANDA", "faction": "RED",    "value": 2, "stealth": 4 },
+    { "count": 10, "kind": "PROPAGANDA", "faction": "YELLOW", "value": 2, "stealth": 4 },
+    { "count": 10, "kind": "PROPAGANDA", "faction": "BLUE",   "value": 2, "stealth": 4 },
+    { "count": 10, "kind": "PROPAGANDA", "faction": "ANY",    "value": 2, "stealth": 5 },
+
+    { "count": 7, "kind": "AND",
+      "left":  { "faction": "ANY",    "value": 1, "stealth": 1 },
+      "right": { "faction": "YELLOW", "value": 2, "stealth": 2 } },
+    { "count": 7, "kind": "AND",
+      "left":  { "faction": "ANY", "value": 1, "stealth": 1 },
+      "right": { "faction": "RED", "value": 2, "stealth": 2 } },
+    { "count": 7, "kind": "AND",
+      "left":  { "faction": "ANY",  "value": 1, "stealth": 1 },
+      "right": { "faction": "BLUE", "value": 2, "stealth": 2 } },
+    { "count": 7, "kind": "AND",
+      "left":  { "faction": "ANY", "value": 1, "stealth": 1 },
+      "right": { "faction": "ANY", "value": 2, "stealth": 2 } },
+
+    { "count": 7, "kind": "OR",
+      "left":  { "faction": "ANY",    "value": 1, "stealth": 1 },
+      "right": { "faction": "YELLOW", "value": 2, "stealth": 2 } },
+    { "count": 7, "kind": "OR",
+      "left":  { "faction": "ANY", "value": 1, "stealth": 1 },
+      "right": { "faction": "RED", "value": 2, "stealth": 2 } },
+    { "count": 7, "kind": "OR",
+      "left":  { "faction": "ANY",  "value": 1, "stealth": 1 },
+      "right": { "faction": "BLUE", "value": 2, "stealth": 2 } },
+    { "count": 7, "kind": "OR",
+      "left":  { "faction": "ANY", "value": 1, "stealth": 1 },
+      "right": { "faction": "ANY", "value": 2, "stealth": 2 } },
+
+    { "count": 5, "kind": "COLLAPSE" },
+    { "count": 5, "kind": "EXPLOSION" },
+    { "count": 5, "kind": "MISTAKE", "value": 2 }
+  ]
+}

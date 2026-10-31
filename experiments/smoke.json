@@ -1,0 +1,14 @@
+{
+  "name": "smoke",
+  "seed": 7,
+  "games": { "random_only": 20, "with_smart": 20 },
+  "players": 4,
+  "random_greed": 12,
+  "smart_greed": 15,
+  "hand_size": 3,
+  "deck": "decks/all_spells.json",
+  "events": "events/base.json",
+  "contracts": "contracts/two_per_faction.json",
+  "max_turns": 500,
+  "output": "build/check/smoke"
+}

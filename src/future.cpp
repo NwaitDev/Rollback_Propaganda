@@ -1,16 +1,9 @@
 #include "../include/game_concepts.hpp"
 #include <iostream>
 
-void future::shuffle(){
+void future::shuffle(std::mt19937& rng){
 	std::cout<<"shuffling the future!"<<std::endl;
-
-	for (size_t i = remaining_cards()-1; i>0; --i) {
-		size_t swap_id = rand()%i;
-		event e1 = future[i];
-		event e2 = future[swap_id];
-		future[i] = e2;
-		future[swap_id] = e1;
-	}
+	shuffle_with(future, rng);
 }
 
 void future::view(){
@@ -28,8 +21,18 @@ const event future::draw(){
 }
 
 
+// a card loses its modifications when it changes zone
 void future::put_on_top(const event& event){
 	future.push_back(event);
+	future.back().reset();
+}
+
+std::vector<event> future::peek(size_t count) const{
+	std::vector<event> top;
+	for (size_t i = 0; i < count && i < future.size(); ++i) {
+		top.push_back(future[future.size()-1-i]); // back() is the top
+	}
+	return top;
 }
 
 size_t future::remaining_cards(){

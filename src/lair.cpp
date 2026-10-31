@@ -1,39 +1,35 @@
 #include "../include/game_concepts.hpp"
-#include <cstddef>
 #include <stdexcept>
 
-void lair::store_ether(shenanigan card){
-	if(card.get_shtype()==ETHER){
-		ether_pool.push_back(card);
-	} else {
-		throw std::runtime_error("cannot store a non-ether card");
-	}
+void lair::prepare_shenanigan(card_ptr card){
+	prepared.push_back(std::move(card));
 }
 
-std::list<shenanigan> lair::cast_spell(shenanigan card, size_t consumed_ether){
-	if (card.get_shtype()!=SPELL) {
-		throw std::runtime_error("cannot cast a non-spell shenanigan");
+card_ptr lair::take_prepared_shenanigan(size_t index){
+	if (index >= prepared.size()) {
+		throw std::out_of_range("no schemed card at this index");
 	}
-	std::list<shenanigan> to_discard;
-	if(consumed_ether > ether_pool.size()){
-		// TODO : Algorithm in case ethers can have different values
-		throw std::runtime_error("cannot draw that many ether from your pool");
-	} else {
-		for (size_t i = consumed_ether; i>0; --i) {
-			to_discard.push_back(ether_pool.back());
-			ether_pool.pop_back();
-		}
-	}
-	to_discard.push_back(card);
-	return to_discard;
+	card_ptr card = std::move(prepared[index]);
+	prepared.erase(prepared.begin() + index);
+	return card;
 }
 
-void lair::prepare_shenanigan(shenanigan card){
-	prepared_shenanigan = card;
+std::vector<card_ptr> lair::take_all_prepared(){
+	return std::move(prepared);
 }
 
-shenanigan lair::reveal_shenanigan(){
-	shenanigan sh = prepared_shenanigan;
-	prepared_shenanigan = NULL;
-	return sh;
+void lair::store_ether(card_ptr card){
+	ether_pool.push_back(std::move(card));
+}
+
+std::vector<card_ptr> lair::spend_ether(unsigned amount){
+	if (amount > ether_pool.size()) {
+		throw std::logic_error("cannot spend that much ether from the pool");
+	}
+	std::vector<card_ptr> spent;
+	for (unsigned i = 0; i < amount; ++i) {
+		spent.push_back(std::move(ether_pool.back()));
+		ether_pool.pop_back();
+	}
+	return spent;
 }

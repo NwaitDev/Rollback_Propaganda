@@ -1,0 +1,15 @@
+{
+  "name": "all_spells",
+  "cards": {
+    "ETHER": 6,
+    "EUPHORIA": 1,
+    "NEURASTHENIA": 1,
+    "PRECIPITATION": 1,
+    "MEMORY_LAPSE": 1,
+    "READING": 1,
+    "ENTROPY_REVERSAL": 1,
+    "ETHER_LEAK": 1,
+    "IMMUNITY": 1,
+    "CHAPTER_SKIP": 1
+  }
+}

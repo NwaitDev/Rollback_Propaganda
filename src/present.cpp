@@ -2,6 +2,9 @@
 #include <cstddef>
 #include <iostream>
 
+// the present is stored in reveal order: front() is the first revealed event,
+// back() is the last revealed one.
+
 const event present::draw_last(){
 	event drawn = present.back();
 	present.pop_back();
@@ -9,67 +12,35 @@ const event present::draw_last(){
 }
 
 const event present::get_last_event(){
-	if(internally_reversed_for_reallocation_avoidance_purpose){
-		reverse_for_reallocation_avoidance_purpose();
-	}
 	return present.back();
 }
 
-void present::discard_last(){
-	if(internally_reversed_for_reallocation_avoidance_purpose){
-		reverse_for_reallocation_avoidance_purpose();
-	}
-	present.pop_back();
-}
-
 void present::view(){
-	if(internally_reversed_for_reallocation_avoidance_purpose){
-		reverse_for_reallocation_avoidance_purpose();
-	}
 	size_t i = 0;
 	std::cout<<"(present)\n";
-	for (event card : present) {
+	for (const event& card : present) {
 		std::cout<<"card n°"<< i++ <<": "; card.view(); std::cout<<std::endl;
 	}
 }
 
 stealth present::append_from_future(future& future){
-	if(internally_reversed_for_reallocation_avoidance_purpose){
-		reverse_for_reallocation_avoidance_purpose();
-	}
 	present.push_back(future.draw());
 	current_stealth += present.back().get_stealth();
 	return current_stealth;
 }
 
 void present::rollback(future& future){
-	if(internally_reversed_for_reallocation_avoidance_purpose){
-		reverse_for_reallocation_avoidance_purpose();
-	}
-	for (size_t i = 0 ; i < present.size(); ++i) {
+	// the last revealed event goes back on the future first, so that the
+	// events will be drawn again in the same order
+	while (!present.empty()) {
 		future.put_on_top(draw_last());
 	}
+	current_stealth = 0;
 }
 
-void present::reverse_for_reallocation_avoidance_purpose(){
-	size_t pos1;
-	size_t pos2;
-	for (size_t i = 0; i<present.size()/2; ++i) {
-		pos1 = i;
-		pos2 = present.size()-1-i;
-		event temp = present[pos1];
-		present[pos1] = present[pos2];
-		present[pos2] = temp;
-	}
-	internally_reversed_for_reallocation_avoidance_purpose = !internally_reversed_for_reallocation_avoidance_purpose;
-}
-
-const event present::execute(game& g, player& controller) {
-	if (!internally_reversed_for_reallocation_avoidance_purpose) {
-		reverse_for_reallocation_avoidance_purpose();
-	}
-	controller.execute(present.back(), g);
-	event to_pass = present.back();
-	present.pop_back();
-	return to_pass;
+// the first revealed event, to be resolved
+event present::take_first() {
+	event first = present.front();
+	present.pop_front();
+	return first;
 }
