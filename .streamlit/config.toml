@@ -1,0 +1,6 @@
+# theme of the dashboard (make dashboard runs streamlit from the project root)
+[theme]
+primaryColor = "#2a78d6"
+
+[browser]
+gatherUsageStats = false

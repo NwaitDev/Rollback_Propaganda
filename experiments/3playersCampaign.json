@@ -1,0 +1,12 @@
+{
+	"name": "3playersCampaign",
+	"seed": 1,
+	"games": { "random_only": 5000, "with_smart": 5000 },
+	"players": 3,
+	"random_greed": [8, 9, 10, 11, 12, 13, 14,15,16,17],
+	"hand_size": 4,
+	"deck": "decks/implemented.json",
+	"events": "events/control.json",
+	"contracts": "contracts/mixed.json"
+  }
+  

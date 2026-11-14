@@ -1,0 +1,16 @@
+{
+  "name": "mixed",
+  "contracts": [
+    { "count": 1, "name": "favori rouge", "factions": ["RED"], "rank": 1, "points": 2 },
+    { "count": 1, "name": "favori jaune", "factions": ["YELLOW"], "rank": 1, "points": 2 },
+    { "count": 1, "name": "favori bleu", "factions": ["BLUE"], "rank": 1, "points": 2 },
+
+    { "count": 1, "name": "outsider rouge", "factions": ["RED"], "rank": 2, "points": 3 },
+    { "count": 1, "name": "outsider jaune", "factions": ["YELLOW"], "rank": 2, "points": 3 },
+    { "count": 1, "name": "outsider bleu", "factions": ["BLUE"], "rank": 2, "points": 3 },
+
+    { "count": 1, "name": "duo rouge-jaune", "factions": ["RED", "YELLOW"], "rank": 1, "points": 1 },
+    { "count": 1, "name": "duo jaune-bleu", "factions": ["YELLOW", "BLUE"], "rank": 1, "points": 1 },
+    { "count": 1, "name": "duo bleu-rouge", "factions": ["BLUE", "RED"], "rank": 1, "points": 1 }
+  ]
+}

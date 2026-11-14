@@ -1,0 +1,316 @@
+seed: 4
+shuffling the future_events!
+shuffling the future!
+nb players: 3.
+contract: outsider rouge / strategy: RANDOM / deck: implemented / greed: 10 (score :0) / grimory: 8, hand: 4
+contract: duo rouge-jaune / strategy: RANDOM / deck: implemented / greed: 10 (score :0) / grimory: 8, hand: 4
+contract: outsider bleu / strategy: RANDOM / deck: implemented / greed: 10 (score :0) / grimory: 8, hand: 4
+(future)
+card n°0: 2 ANY (5)
+card n°1: 2 BLUE (4)
+card n°2: 2 YELLOW (4)
+card n°3: 2 ANY (5)
+card n°4: 2 BLUE (4)
+card n°5: 2 ANY (5)
+card n°6: ELECTION  (3)
+card n°7: 1 ANY (1) OR 2 ANY (2)
+card n°8: 1 ANY (1) AND 2 RED (2)
+card n°9: 2 YELLOW (4)
+card n°10: 2 RED (4)
+card n°11: EXPLOSION
+card n°12: 2 RED (4)
+card n°13: 1 ANY (1) AND 2 BLUE (2)
+card n°14: 1 ANY (1) AND 2 ANY (2)
+card n°15: 1 ANY (1) AND 2 BLUE (2)
+card n°16: 1 ANY (1) AND 2 ANY (2)
+card n°17: ELECTION  (3)
+card n°18: 1 ANY (1) OR 2 ANY (2)
+card n°19: 1 ANY (1) AND 2 RED (2)
+card n°20: 1 ANY (1) AND 2 RED (2)
+card n°21: 1 ANY (1) OR 2 YELLOW (2)
+card n°22: 1 ANY (1) OR 2 BLUE (2)
+card n°23: EXPLOSION
+card n°24: 2 YELLOW (4)
+card n°25: 1 ANY (1) OR 2 YELLOW (2)
+card n°26: 2 BLUE (4)
+card n°27: 1 ANY (1) OR 2 RED (2)
+card n°28: 1 ANY (1) AND 2 BLUE (2)
+card n°29: 2 ANY (5)
+card n°30: 1 ANY (1) AND 2 BLUE (2)
+card n°31: 1 ANY (1) AND 2 RED (2)
+card n°32: 2 BLUE (4)
+card n°33: EXPLOSION
+card n°34: 1 ANY (1) OR 2 ANY (2)
+card n°35: 2 RED (4)
+card n°36: 2 BLUE (4)
+card n°37: 1 ANY (1) OR 2 YELLOW (2)
+card n°38: MISTAKE (x2)
+card n°39: 2 ANY (5)
+card n°40: 1 ANY (1) AND 2 YELLOW (2)
+card n°41: COLLAPSE
+card n°42: 1 ANY (1) OR 2 RED (2)
+card n°43: MISTAKE (x2)
+card n°44: 1 ANY (1) OR 2 YELLOW (2)
+card n°45: ELECTION  (3)
+card n°46: ELECTION  (3)
+card n°47: 1 ANY (1) AND 2 ANY (2)
+card n°48: 1 ANY (1) OR 2 RED (2)
+card n°49: 1 ANY (1) OR 2 BLUE (2)
+card n°50: ELECTION  (3)
+card n°51: 1 ANY (1) OR 2 RED (2)
+card n°52: ELECTION  (3)
+card n°53: 1 ANY (1) AND 2 ANY (2)
+card n°54: 2 BLUE (4)
+card n°55: 1 ANY (1) AND 2 RED (2)
+card n°56: 2 RED (4)
+card n°57: 2 RED (4)
+card n°58: COLLAPSE
+card n°59: ELECTION  (3)
+card n°60: 1 ANY (1) AND 2 ANY (2)
+card n°61: 1 ANY (1) OR 2 YELLOW (2)
+card n°62: 1 ANY (1) OR 2 BLUE (2)
+card n°63: 1 ANY (1) AND 2 ANY (2)
+card n°64: 1 ANY (1) AND 2 YELLOW (2)
+card n°65: COLLAPSE
+card n°66: ELECTION  (3)
+card n°67: 1 ANY (1) OR 2 ANY (2)
+card n°68: 2 YELLOW (4)
+card n°69: 1 ANY (1) AND 2 RED (2)
+card n°70: 2 RED (4)
+card n°71: 1 ANY (1) OR 2 RED (2)
+card n°72: MISTAKE (x2)
+card n°73: 2 ANY (5)
+card n°74: 1 ANY (1) AND 2 YELLOW (2)
+card n°75: EXPLOSION
+card n°76: 2 RED (4)
+card n°77: 2 YELLOW (4)
+card n°78: 2 BLUE (4)
+card n°79: ELECTION  (3)
+card n°80: 2 YELLOW (4)
+card n°81: MISTAKE (x2)
+card n°82: 2 ANY (5)
+card n°83: 1 ANY (1) AND 2 BLUE (2)
+card n°84: 1 ANY (1) OR 2 BLUE (2)
+card n°85: 2 RED (4)
+card n°86: 1 ANY (1) AND 2 YELLOW (2)
+card n°87: 1 ANY (1) OR 2 RED (2)
+card n°88: 2 ANY (5)
+card n°89: COLLAPSE
+card n°90: 1 ANY (1) AND 2 YELLOW (2)
+card n°91: 2 BLUE (4)
+card n°92: 2 YELLOW (4)
+card n°93: 1 ANY (1) AND 2 ANY (2)
+card n°94: 2 ANY (5)
+card n°95: 1 ANY (1) AND 2 YELLOW (2)
+card n°96: ELECTION  (3)
+card n°97: 2 BLUE (4)
+card n°98: 1 ANY (1) OR 2 RED (2)
+card n°99: 1 ANY (1) OR 2 YELLOW (2)
+card n°100: 1 ANY (1) AND 2 BLUE (2)
+card n°101: 1 ANY (1) OR 2 BLUE (2)
+card n°102: 1 ANY (1) AND 2 RED (2)
+card n°103: 2 YELLOW (4)
+card n°104: 2 ANY (5)
+card n°105: 1 ANY (1) OR 2 ANY (2)
+card n°106: 1 ANY (1) OR 2 YELLOW (2)
+card n°107: 2 RED (4)
+card n°108: 2 YELLOW (4)
+card n°109: 1 ANY (1) OR 2 BLUE (2)
+card n°110: MISTAKE (x2)
+card n°111: 1 ANY (1) OR 2 ANY (2)
+card n°112: EXPLOSION
+card n°113: 1 ANY (1) AND 2 BLUE (2)
+card n°114: 2 RED (4)
+card n°115: 1 ANY (1) OR 2 ANY (2)
+card n°116: 1 ANY (1) OR 2 BLUE (2)
+card n°117: 2 BLUE (4)
+card n°118: 2 YELLOW (4)
+card n°119: 1 ANY (1) AND 2 YELLOW (2)
+card n°120: COLLAPSE
+(present)
+(past)
+(oblivion)
+The game is running...
+turn:0.	remaining cards: 121
+forced execute!
+turn:1.	remaining cards: 120
+multi_propaganda!
+propaganda!
+propaganda!
+turn:2.	remaining cards: 117
+multi_propaganda!
+multi_propaganda!
+propaganda!
+turn:3.	remaining cards: 114
+multi_propaganda!
+explosion!
+turn:4.	remaining cards: 113
+multi_propaganda!
+multi_propaganda!
+mistake!
+multi_propaganda!
+propaganda!
+turn:5.	remaining cards: 108
+propaganda!
+multi_propaganda!
+multi_propaganda!
+turn:6.	remaining cards: 105
+propaganda!
+propaganda!
+multi_propaganda!
+turn:7.	remaining cards: 102
+multi_propaganda!
+multi_propaganda!
+multi_propaganda!
+multi_propaganda!
+turn:8.	remaining cards: 98
+propaganda!
+election!
+multi_propaganda!
+ELECTION EXECUTEE
+turn:9.	remaining cards: 95
+propaganda!
+multi_propaganda!
+propaganda!
+turn:10.	remaining cards: 92
+propaganda!
+multi_propaganda!
+forced execute!
+turn:11.	remaining cards: 89
+propaganda!
+multi_propaganda!
+multi_propaganda!
+turn:12.	remaining cards: 86
+propaganda!
+multi_propaganda!
+multi_propaganda!
+turn:13.	remaining cards: 83
+propaganda!
+mistake!
+propaganda!
+election!
+ELECTION EXECUTEE
+turn:14.	remaining cards: 79
+propaganda!
+propaganda!
+propaganda!
+turn:15.	remaining cards: 76
+explosion!
+turn:16.	remaining cards: 75
+multi_propaganda!
+propaganda!
+mistake!
+multi_propaganda!
+turn:17.	remaining cards: 71
+propaganda!
+multi_propaganda!
+propaganda!
+multi_propaganda!
+turn:18.	remaining cards: 67
+election!
+forced execute!
+ELECTION EXECUTEE
+turn:19.	remaining cards: 65
+multi_propaganda!
+multi_propaganda!
+multi_propaganda!
+multi_propaganda!
+turn:20.	remaining cards: 61
+multi_propaganda!
+election!
+forced execute!
+forced rollback!
+turn:21.	remaining cards: 61
+multi_propaganda!
+election!
+forced execute!
+ELECTION EXECUTEE
+turn:22.	remaining cards: 58
+propaganda!
+propaganda!
+multi_propaganda!
+turn:23.	remaining cards: 55
+propaganda!
+multi_propaganda!
+election!
+ELECTION EXECUTEE
+turn:24.	remaining cards: 52
+multi_propaganda!
+election!
+multi_propaganda!
+multi_propaganda!
+ELECTION EXECUTEE
+turn:25.	remaining cards: 48
+multi_propaganda!
+election!
+election!
+multi_propaganda!
+ELECTION EXECUTEE
+ELECTION EXECUTEE
+turn:26.	remaining cards: 44
+mistake!
+multi_propaganda!
+forced execute!
+turn:27.	remaining cards: 41
+multi_propaganda!
+propaganda!
+mistake!
+multi_propaganda!
+turn:28.	remaining cards: 37
+propaganda!
+propaganda!
+multi_propaganda!
+turn:29.	remaining cards: 34
+explosion!
+turn:30.	remaining cards: 33
+propaganda!
+multi_propaganda!
+multi_propaganda!
+turn:31.	remaining cards: 30
+propaganda!
+multi_propaganda!
+multi_propaganda!
+turn:32.	remaining cards: 27
+propaganda!
+multi_propaganda!
+propaganda!
+turn:33.	remaining cards: 24
+explosion!
+turn:34.	remaining cards: 23
+multi_propaganda!
+multi_propaganda!
+multi_propaganda!
+multi_propaganda!
+turn:35.	remaining cards: 19
+multi_propaganda!
+election!
+multi_propaganda!
+multi_propaganda!
+ELECTION EXECUTEE
+turn:36.	remaining cards: 15
+multi_propaganda!
+multi_propaganda!
+propaganda!
+turn:37.	remaining cards: 12
+explosion!
+turn:38.	remaining cards: 11
+propaganda!
+propaganda!
+multi_propaganda!
+turn:39.	remaining cards: 8
+multi_propaganda!
+election!
+propaganda!
+ELECTION EXECUTEE
+turn:40.	remaining cards: 5
+propaganda!
+propaganda!
+propaganda!
+propaganda!
+turn:41.	remaining cards: 1
+propaganda!
+the game is over!
+contract: outsider rouge / strategy: RANDOM / deck: implemented / greed: 10 (score :3) / grimory: 0, hand: 1
+contract: duo rouge-jaune / strategy: RANDOM / deck: implemented / greed: 10 (score :8) / grimory: 0, hand: 2
+contract: outsider bleu / strategy: RANDOM / deck: implemented / greed: 10 (score :12) / grimory: 0, hand: 0
+winner: player n°2 (contract: outsider bleu / strategy: RANDOM / deck: implemented / greed: 10 (score :12) / grimory: 0, hand: 0)

@@ -1,3 +1,13 @@
 build/
 simulation
 .vscode/
+metrics/
+results/
+lib/
+lib64/
+share/
+bin/
+campaign/
+pyvenv.cfg
+dashboard/__pycache__/
+third_party/doctest/doctest.h
