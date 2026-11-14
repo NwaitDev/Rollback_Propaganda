@@ -92,23 +92,11 @@ void game::apply_propagandas(const std::vector<const event*>& propagandas,
 	}
 }
 
-// Every mage whose contract is the strictly most popular faction scores a
-// point (no point on a tie).
+// Every mage scores what their contract pays for the current popularities
+// (see contract::points_earned).
 void game::resolve_election(){
-	for (faction f : {RED, YELLOW, BLUE}) {
-		bool most_popular = true;
-		for (faction other : {RED, YELLOW, BLUE}) {
-			if (other != f && scores[other] >= scores[f]) {
-				most_popular = false;
-			}
-		}
-		if (most_popular) {
-			for (std::unique_ptr<player>& p : players) {
-				if (p->get_contract() == f) {
-					p->score_a_point();
-				}
-			}
-		}
+	for (std::unique_ptr<player>& p : players) {
+		p->score_points(p->get_contract().points_earned(scores));
 	}
 	std::cout<<"ELECTION EXECUTEE"<<std::endl;
 }

@@ -22,6 +22,8 @@ void spell::resolve(card_ptr self, game &g, player &caster) {
 		for (card_ptr &spent : caster.spend_ether(ether)) {
 			g.cosmos_cards.absorb(std::move(spent));
 		}
+	} else {
+		g.observer().spell_failed(g, caster, *this);
 	}
 	g.cosmos_cards.absorb(std::move(self));
 }
@@ -39,7 +41,7 @@ bool modify_chosen_propaganda(game &g, player &caster, int modification) {
 	if (target == nullptr) {
 		return false;
 	}
-	if (!g.get_current_player().cancels_choice_by(caster)) {
+	if (!g.get_current_player().cancels_choice_by(g, caster)) {
 		target->modify(modification);
 	}
 	return true;
@@ -92,10 +94,16 @@ public:
 
 	void resolve(card_ptr self, game &g, player &caster) override {
 		player *target = caster.choose_opponent(g);
-		if (target == nullptr || target->cancels_choice_by(caster)) {
+		if (target == nullptr) {
+			g.observer().spell_failed(g, caster, *this);
 			g.cosmos_cards.absorb(std::move(self));
 			return;
 		}
+		if (target->cancels_choice_by(g, caster)) {
+			g.cosmos_cards.absorb(std::move(self));
+			return;
+		}
+		g.observer().memory_lapse_received(g, *target);
 		target->receive_card(std::move(self));
 	}
 
@@ -162,8 +170,9 @@ protected:
 			if (target == &caster || target->available_ether() == 0) {
 				throw std::logic_error("a player chose an invalid ether to leak");
 			}
-			if (!target->cancels_choice_by(caster)) {
+			if (!target->cancels_choice_by(g, caster)) {
 				g.cosmos_cards.absorb(target->lose_ether());
+				g.observer().ether_leaked(g, *target);
 			}
 		}
 		return true;
@@ -222,7 +231,9 @@ card_ptr make() {
 
 // --- names used in the deck files ----------------------------------------------
 
-card_ptr make_card(const std::string &name) {
+namespace {
+
+const std::map<std::string, std::function<card_ptr()>>& card_factory() {
 	static const std::map<std::string, std::function<card_ptr()>> factory = {
 		{"ETHER", make<ether>},
 		{"EUPHORIA", make<euphoria>},
@@ -235,8 +246,22 @@ card_ptr make_card(const std::string &name) {
 		{"IMMUNITY", make<immunity>},
 		{"CHAPTER_SKIP", make<chapter_skip>},
 	};
-	auto card = factory.find(name);
-	if (card == factory.end()) {
+	return factory;
+}
+
+}
+
+std::vector<std::string> card_names() {
+	std::vector<std::string> names;
+	for (const auto& entry : card_factory()) {
+		names.push_back(entry.first);
+	}
+	return names;
+}
+
+card_ptr make_card(const std::string &name) {
+	auto card = card_factory().find(name);
+	if (card == card_factory().end()) {
 		return nullptr;
 	}
 	return card->second();

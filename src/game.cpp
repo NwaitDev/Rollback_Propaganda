@@ -12,7 +12,7 @@ game::game(stealth max_stealth, unsigned seed, int starting_popularity)
 : scores(factions_count, starting_popularity), max_stealth(max_stealth),
   seed(seed), generator(seed) {}
 
-void game::set_contract_pile(std::vector<faction> contracts){
+void game::set_contract_pile(std::vector<contract> contracts){
 	contract_pile = std::move(contracts);
 }
 
@@ -32,7 +32,16 @@ void game::setup(){
 	}
 }
 
-size_t game::determine_winner(){
+size_t game::seat_of(const player& p) const{
+	for (size_t i = 0; i < players.size(); ++i) {
+		if (players[i].get() == &p) {
+			return i;
+		}
+	}
+	throw std::logic_error("this player is not in the game");
+}
+
+size_t game::determine_winner(tiebreak* how){
 	std::vector<size_t> best;
 	for (size_t i = 0; i < players.size(); ++i) {
 		if (best.empty()) {
@@ -50,6 +59,14 @@ size_t game::determine_winner(){
 			best.assign(1, i);
 		} else if (tied) {
 			best.push_back(i);
+		}
+	}
+	if (how != nullptr) {
+		*how = tiebreak::NONE;
+		for (size_t i = 0; i < players.size(); ++i) {
+			if (i != best.front() && players[i]->get_score() == players[best.front()]->get_score()) {
+				*how = (best.size() > 1) ? tiebreak::DRAW : tiebreak::GRIMORY;
+			}
 		}
 	}
 	return best[random_below(best.size())];
@@ -101,6 +118,7 @@ bool game::play_game(long max_turns){
 
 void game::play_turn(){
 	turn_rolled_back = false;
+	outcome = turn_outcome::RESOLVED;
 
 	preparation_phase();
 
@@ -115,11 +133,18 @@ void game::play_turn(){
 	}
 
 	cleanup_phase();
+	observer().turn_ended(*this, outcome);
 }
 
 void game::preparation_phase(){
 	for (std::unique_ptr<player>& p : players) {
 		p->prepare(*this);
+	}
+	for (std::unique_ptr<player>& p : players) {
+		const hand& kept = p->get_hand();
+		for (size_t i = 0; i < kept.get_nb_cards(); ++i) {
+			observer().card_kept_in_hand(*this, *p, kept.card_at(i));
+		}
 	}
 }
 
@@ -139,6 +164,7 @@ bool game::reveal_one_event(){
 
 	if(present_events.get_stealth()>max_stealth){
 		std::cout<<"forced rollback!"<<std::endl;
+		outcome = turn_outcome::STEALTH_ROLLBACK;
 		rollback();
 		return false;
 	}
@@ -163,6 +189,7 @@ bool game::reveal_one_event(){
 		case EXPLOSION:
 			std::cout<<"explosion!"<<std::endl;
 			oblivion.push_back(present_events.draw_last());
+			outcome = turn_outcome::EXPLOSION_ROLLBACK;
 			rollback();
 			return false;
 		case COLLAPSE:
@@ -192,6 +219,7 @@ void game::execution_phase(){
 	while (!present_events.is_empty()) {
 		event resolved = present_events.take_first();
 		resolve_event(resolved, *players[current_player]);
+		observer().event_resolved(*this, resolved);
 		past_events.pass(resolved);
 	}
 }

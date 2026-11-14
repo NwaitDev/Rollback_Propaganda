@@ -148,6 +148,8 @@ protected:
 
 // creates a card from its name in the deck files, or nullptr if unknown
 card_ptr make_card(const std::string &name);
+// the names of every card make_card() knows, in alphabetical order
+std::vector<std::string> card_names();
 
 
 class grimory {
@@ -202,8 +204,33 @@ struct starting_deck {
 
 starting_deck load_deck(const std::string &path);
 
+// --- contracts ----------------------------------------------------------------
+// A contract pays `points` at each election if one of its factions holds the
+// popularity rank `rank` (1: the most popular) alone. A faction tied with
+// another one holds no rank: with RED 5, YELLOW 5, BLUE 2, nobody is first
+// and BLUE is third. The contracts are defined in contract.cpp.
+
+struct contract {
+  std::string name;
+  std::vector<faction> factions;
+  int rank = 1;
+  int points = 1;
+
+  // points earned if an election happened with these popularities
+  int points_earned(const std::vector<int> &popularity) const;
+
+  // How good these popularities are for this contract, to compare the
+  // outcomes of choices. Higher is better: a satisfied contract always rates
+  // better than an unsatisfied one, then the margin decides (how far the
+  // best of its factions is from losing the rank, or from reaching it).
+  long rate(const std::vector<int> &popularity) const;
+};
+
+// rank held alone by a faction (1: the most popular), 0 if it is tied
+int rank_of(faction f, const std::vector<int> &popularity);
+
 // contract cards, read from a JSON file (see contracts/)
-std::vector<faction> load_contracts(const std::string &path);
+std::vector<contract> load_contracts(const std::string &path);
 
 // event cards, read from a JSON file (see events/ and deck_loader.cpp)
 std::vector<event> load_events(const std::string &path);
@@ -223,14 +250,16 @@ private:
 class player {
 public:
   player(stealth greed, strategy strat);
-  void sign_contract(faction f);
-  void score_a_point();
+  void sign_contract(const contract &c);
+  void score_points(int amount);
   void view() const;
-  int get_score();
-  enum faction get_contract() const;
+  int get_score() const;
+  const contract &get_contract() const;
   int get_greed();
   inline size_t grimory_size() const { return deck.size(); }
   inline void refill_hand() { cards_in_hand.draw_up_to_limit(deck); }
+  inline const hand &get_hand() const { return cards_in_hand; }
+  inline void add_to_grimory(card_ptr card) { deck.put_at_bottom(std::move(card)); }
   void give_starting_deck(starting_deck d);
   inline void set_hand_size(size_t size) { cards_in_hand.set_limit(size); }
   void setup(game &g);
@@ -251,7 +280,7 @@ public:
   void gain_immunity(unsigned charges);
   // true if this player is immune to a choice made by `chooser` (an
   // opponent): the choice is cancelled and one immunity charge is spent
-  bool cancels_choice_by(const player &chooser);
+  bool cancels_choice_by(game &g, const player &chooser);
   void end_turn();
   std::vector<player *> opponents(game &g);
 
@@ -286,7 +315,7 @@ protected:
   grimory deck;
   hand cards_in_hand = hand(4);
   lair cards_in_play;
-  enum faction contract = NONE;
+  contract signed_contract;
 
   event &spell_access(game &g, event_pile ep, size_t position);
   std::vector<event *> present_propaganda(game &g);
@@ -390,6 +419,37 @@ private:
   std::vector<event> past = std::vector<event>();
 };
 
+// --- observation -------------------------------------------------------------
+// The game reports what happens to an observer, which can measure it (see
+// campaign.hpp). The default observer ignores everything: observing never
+// changes the course of a game.
+
+enum class turn_outcome { RESOLVED, STEALTH_ROLLBACK, EXPLOSION_ROLLBACK };
+
+enum class tiebreak { NONE, GRIMORY, DRAW };
+
+class game_observer {
+public:
+  virtual ~game_observer() = default;
+  // a mage schemes a card (Phase de Manigances)
+  virtual void card_schemed(game &g, const player &p, const shenanigan &card) {}
+  // a card stays in a mage's hand during the Phase de Manigances
+  virtual void card_kept_in_hand(game &g, const player &p, const shenanigan &card) {}
+  // a mage reveals a schemed card (instead of putting it under the grimory)
+  virtual void card_revealed(game &g, const player &p, const shenanigan &card) {}
+  // a revealed spell has no effect, for lack of a target
+  virtual void spell_failed(game &g, const player &p, const shenanigan &card) {}
+  // an event of the present has just been resolved
+  virtual void event_resolved(game &g, const event &e) {}
+  virtual void memory_lapse_received(game &g, const player &target) {}
+  virtual void ether_leaked(game &g, const player &target) {}
+  // a choice of an opponent is cancelled by the immunity of `immune`
+  virtual void immunity_triggered(game &g, const player &immune) {}
+  // end of a turn (after the hands are refilled)
+  virtual void turn_ended(game &g, turn_outcome outcome) {}
+};
+
+
 class game {
 public:
   game(stealth max_stealth, unsigned seed, int starting_popularity = 0);
@@ -414,10 +474,15 @@ public:
 
   inline unsigned get_seed() const { return seed; }
   inline bool turn_was_rolled_back() const { return turn_rolled_back; }
-  void set_contract_pile(std::vector<faction> contracts);
+  void set_contract_pile(std::vector<contract> contracts);
   // the mage with the most points; ties go to the biggest grimory, then to
-  // a random draw (index in the players)
-  size_t determine_winner();
+  // a random draw (index in the players). `how` tells how a tie was broken.
+  size_t determine_winner(tiebreak *how = nullptr);
+
+  // the observer is not owned by the game; nullptr: no observer
+  inline void set_observer(game_observer *o) { observer_ptr = o; }
+  inline game_observer &observer() { return observer_ptr ? *observer_ptr : no_observer; }
+  size_t seat_of(const player &p) const;
   inline std::mt19937 &rng() { return generator; }
   inline size_t random_below(size_t n) { return ::random_below(generator, n); }
   // the mage whose turn it is controls the events of the present
@@ -454,8 +519,11 @@ private:
   long elapsed_turns = 0;
   unsigned seed;
   std::mt19937 generator;
-  std::vector<faction> contract_pile; // undealt contracts, face down
+  std::vector<contract> contract_pile; // undealt contracts, face down
   bool turn_rolled_back = false;
+  turn_outcome outcome = turn_outcome::RESOLVED;
+  game_observer no_observer;
+  game_observer *observer_ptr = nullptr;
   long next_event_id = 0;
 };
 

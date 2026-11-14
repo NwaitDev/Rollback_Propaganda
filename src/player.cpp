@@ -5,36 +5,18 @@
 
 player::player(stealth greed, strategy strat) : greed(greed), strat(strat) {}
 
-void player::sign_contract(enum faction f) { contract = f; }
+void player::sign_contract(const contract &c) { signed_contract = c; }
 
-void player::score_a_point() { this->points++; }
+void player::score_points(int amount) { points += amount; }
 
-int player::get_score() { return points; }
+int player::get_score() const { return points; }
 
-faction player::get_contract() const { return contract; }
+const contract &player::get_contract() const { return signed_contract; }
 
 int player::get_greed() { return greed; }
 
 void player::view() const {
-  std::cout << "faction: ";
-  switch (contract) {
-
-  case RED:
-    std::cout << "RED";
-    break;
-  case YELLOW:
-    std::cout << "YELLOW";
-    break;
-  case BLUE:
-    std::cout << "BLUE";
-    break;
-  case ANY:
-    std::cout << "ANY?";
-    break;
-  case NONE:
-    std::cout << "NONE???";
-    break;
-  }
+  std::cout << "contract: " << (signed_contract.name.empty() ? "none" : signed_contract.name);
   std::cout << " / strategy: ";
   switch (strat) {
   case RANDOM:
@@ -113,7 +95,9 @@ void player::prepare(game &g) {
     return; // nothing to scheme with this turn
   }
   size_t index = choose_card_to_scheme(g);
-  cards_in_play.prepare_shenanigan(cards_in_hand.play_card(index));
+  card_ptr card = cards_in_hand.play_card(index);
+  g.observer().card_schemed(g, *this, *card);
+  cards_in_play.prepare_shenanigan(std::move(card));
 }
 
 void player::take_back_shenanigan() {
@@ -133,6 +117,7 @@ void player::do_shenanigans(game &g) {
       deck.put_at_bottom(std::move(card));
       continue;
     }
+    g.observer().card_revealed(g, *this, *card);
     shenanigan &revealed = *card;
     revealed.resolve(std::move(card), g, *this);
   }
@@ -182,11 +167,12 @@ void player::gain_immunity(unsigned charges) {
   immunity_charges += charges;
 }
 
-bool player::cancels_choice_by(const player &chooser) {
+bool player::cancels_choice_by(game &g, const player &chooser) {
   if (&chooser == this || immunity_charges == 0) {
     return false;
   }
   --immunity_charges;
+  g.observer().immunity_triggered(g, *this);
   return true;
 }
 

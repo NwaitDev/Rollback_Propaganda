@@ -1,16 +1,26 @@
 #include "../include/campaign.hpp"
+#include <algorithm>
 #include <exception>
 #include <iostream>
 #include <string>
 
-// usage: campaign <experiment.json>
-//        campaign <experiment.json> --replay <random_only|with_smart> <index>
-// The first form plays every game of the experiment and writes the results.
-// The second one replays a single game of the campaign, printing every step.
+// usage: campaign --cards
+//        campaign <experiment.json>
+//        campaign <experiment.json> --replay <random_only|with_smart> <index> [<greed>]
+// --cards lists the card names a deck or \"extra_card\" can use.
+// The first form with an experiment plays every game of the experiment and writes the results.
+// The second one replays a single game of the campaign, printing every step;
+// <greed> picks the greed level when the experiment lists several.
 int main(int argc, char* argv[]){
 	const std::string usage = std::string("usage: ") + argv[0] + " <experiment.json>"
-		+ " [--replay <random_only|with_smart> <index>]";
-	if (argc != 2 && argc != 5) {
+		+ " [--replay <random_only|with_smart> <index> [<greed>]]";
+	if (argc == 2 && std::string(argv[1]) == "--cards") {
+		for (const std::string& name : card_names()) {
+			std::cout<<name<<std::endl;
+		}
+		return 0;
+	}
+	if (argc != 2 && argc != 5 && argc != 6) {
 		std::cerr<<usage<<std::endl;
 		return 1;
 	}
@@ -33,10 +43,22 @@ int main(int argc, char* argv[]){
 			std::cerr<<"error: the campaign has "<<count<<" "<<type<<" games"<<std::endl;
 			return 1;
 		}
+		stealth greed = exp.random_greeds.front();
+		if (argc == 6) {
+			greed = std::stoi(argv[5]);
+		} else if (exp.random_greeds.size() > 1) {
+			std::cerr<<"error: the campaign has several greed levels; give one of them"<<std::endl;
+			return 1;
+		}
+		if (std::find(exp.random_greeds.begin(), exp.random_greeds.end(), greed) == exp.random_greeds.end()) {
+			std::cerr<<"error: the campaign has no greed level "<<greed<<std::endl;
+			return 1;
+		}
 		long position = (t == game_type::RANDOM_ONLY) ? index : exp.random_only_games + index;
 		unsigned seed = game_seeds(exp)[position];
-		std::cout<<"replaying "<<type<<" game n°"<<index<<" (seed "<<seed<<")"<<std::endl;
-		run_game(exp, t, index, seed, true);
+		std::cout<<"replaying "<<type<<" game n°"<<index<<" at greed "<<greed
+		         <<" (seed "<<seed<<")"<<std::endl;
+		run_game(exp.with_greed(greed), t, index, seed, true);
 	} catch (const std::exception& e) {
 		std::cerr<<"error: "<<e.what()<<std::endl;
 		return 1;

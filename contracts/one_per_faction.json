@@ -1,8 +1,8 @@
 {
   "name": "one_per_faction",
-  "contracts": {
-    "RED": 1,
-    "YELLOW": 1,
-    "BLUE": 1
-  }
+  "contracts": [
+    { "count": 1, "name": "RED", "factions": ["RED"], "rank": 1, "points": 1 },
+    { "count": 1, "name": "YELLOW", "factions": ["YELLOW"], "rank": 1, "points": 1 },
+    { "count": 1, "name": "BLUE", "factions": ["BLUE"], "rank": 1, "points": 1 }
+  ]
 }

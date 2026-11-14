@@ -16,7 +16,7 @@ const std::string default_events = "events/base.json";
 // deck_paths: either a single deck for every mage, or one deck per mage
 void init_game(game& g, const std::vector<std::string>& deck_paths,
                const std::string& events_path){
-	// the contracts (factions) are dealt at random by game::setup()
+	// the contracts are dealt at random by game::setup()
 	g.add_player(std::make_unique<random_player>(10));
 	g.add_player(std::make_unique<random_player>(10));
 	g.add_player(std::make_unique<random_player>(10));

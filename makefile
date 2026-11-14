@@ -9,6 +9,14 @@
 #                    avec chaque deck de decks/ et la campagne de test
 #                    experiments/smoke.json
 #   make valgrind    joue une partie complète sous valgrind
+#   make dashboard   ouvre le tableau de bord (Python : voir dashboard/requirements.txt)
+#   make dashboard-test  teste le tableau de bord sur de petites campagnes de test
+#   make test        tests unitaires (C++, avec les sanitizers) puis tests des
+#                    programmes (Python) ; TEST_ARGS filtre les tests C++, par
+#                    exemple TEST_ARGS='-tce="*[slow]*"' (voir tests/README.md)
+#   make test-all    make test, make check et make dashboard-test
+#   make golden      réécrit les sorties de référence des tests (après un
+#                    changement voulu du déroulement des parties)
 #   make clean       supprime tout ce qui a été généré
 #
 # ARGS transmet des options à ./simulation, par exemple :
@@ -30,6 +38,7 @@ SOURCES   := $(wildcard $(SRC_DIR)/*.cpp)
 MAINS     := $(SRC_DIR)/main.cpp $(SRC_DIR)/campaign_main.cpp
 COMMON    := $(filter-out $(MAINS),$(SOURCES))
 EXP       ?= experiments/base.json
+PYTHON    ?= ./bin/python3
 DECKS     := $(wildcard decks/*.json)
 ARGS      ?=
 
@@ -60,9 +69,20 @@ CHECK_CAMPAIGN := $(CHECK_DIR)/campaign
 CHECK_RUNS    ?= 5
 
 
+# --- tests -------------------------------------------------------------------
+# les tests C++ (tests/*.cpp, doctest) sont liés aux objets communs de la
+# variante check : ils profitent des mêmes sanitizers
+
+TEST_DIR      := $(CHECK_DIR)/tests
+TEST_SOURCES  := $(wildcard tests/*.cpp)
+TEST_OBJS     := $(TEST_SOURCES:tests/%.cpp=$(TEST_DIR)/%.o)
+TEST_BINARY   := $(CHECK_DIR)/unit_tests
+TEST_ARGS     ?=
+
+
 # --- cibles ----------------------------------------------------------------
 
-.PHONY: all run play experiment check valgrind clean
+.PHONY: all run play experiment check valgrind dashboard dashboard-test test test-all golden clean
 .DELETE_ON_ERROR:
 
 all: $(BINARY) $(CAMPAIGN)
@@ -94,7 +114,7 @@ check: $(CHECK_BINARY) $(CHECK_CAMPAIGN)
 	done
 	@echo "=== campagne de test experiments/smoke.json"
 	@./$(CHECK_CAMPAIGN) experiments/smoke.json > $(CHECK_DIR)/smoke.log 2>&1 \
-		&& ./$(CHECK_CAMPAIGN) experiments/smoke.json --replay with_smart 3 >> $(CHECK_DIR)/smoke.log 2>&1 \
+		&& ./$(CHECK_CAMPAIGN) experiments/smoke.json --replay with_smart 3 12 >> $(CHECK_DIR)/smoke.log 2>&1 \
 		|| { echo "--- ERREUR (journal complet : $(CHECK_DIR)/smoke.log)"; \
 		     grep -E "runtime error|ERROR|SUMMARY|terminate|error:" $(CHECK_DIR)/smoke.log | head -20; exit 1; }
 	@echo "--- OK"
@@ -102,6 +122,24 @@ check: $(CHECK_BINARY) $(CHECK_CAMPAIGN)
 
 valgrind: $(BINARY)
 	valgrind -s --leak-check=full --track-origins=yes ./$(BINARY) --play $(ARGS)
+
+dashboard: $(CAMPAIGN)
+	$(PYTHON) -m streamlit run dashboard/app.py
+
+# the test campaigns are written in build/dashboard_test, never in results/
+dashboard-test: $(CAMPAIGN)
+	dashboard/tests/make_test_results.sh build/dashboard_test
+	ROLLBACK_TEST_RESULTS=build/dashboard_test/results $(PYTHON) -m pytest -q dashboard/tests
+
+# the C++ tests open the files of the project: they run from its root
+test: $(TEST_BINARY) $(BINARY) $(CAMPAIGN)
+	./$(TEST_BINARY) $(TEST_ARGS)
+	$(PYTHON) -m pytest -q tests/integration
+
+test-all: test check dashboard-test
+
+golden: $(BINARY)
+	tests/integration/make_golden.sh
 
 clean:
 	rm -rf $(BUILD_DIR) $(BINARY) $(CAMPAIGN)
@@ -121,6 +159,9 @@ $(CHECK_BINARY): $(CHECK_OBJS) $(CHECK_DIR)/main.o
 $(CHECK_CAMPAIGN): $(CHECK_OBJS) $(CHECK_DIR)/campaign_main.o
 	$(CXX) $(CXXFLAGS) $(CHECK_FLAGS) $^ -o $@
 
+$(TEST_BINARY): $(CHECK_OBJS) $(TEST_OBJS)
+	$(CXX) $(CXXFLAGS) $(CHECK_FLAGS) $^ -o $@
+
 
 # --- compilation -----------------------------------------------------------
 # "| dossier" : le dossier doit exister, mais sa date est ignorée
@@ -131,8 +172,11 @@ $(RELEASE_DIR)/%.o: $(SRC_DIR)/%.cpp | $(RELEASE_DIR)
 $(CHECK_DIR)/%.o: $(SRC_DIR)/%.cpp | $(CHECK_DIR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CHECK_FLAGS) -c $< -o $@
 
-$(RELEASE_DIR) $(CHECK_DIR):
+$(TEST_DIR)/%.o: tests/%.cpp | $(TEST_DIR)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CHECK_FLAGS) -c $< -o $@
+
+$(RELEASE_DIR) $(CHECK_DIR) $(TEST_DIR):
 	mkdir -p $@
 
 # dépendances vers les headers, générées automatiquement par -MMD -MP
--include $(wildcard $(RELEASE_DIR)/*.d $(CHECK_DIR)/*.d)
+-include $(wildcard $(RELEASE_DIR)/*.d $(CHECK_DIR)/*.d $(TEST_DIR)/*.d)

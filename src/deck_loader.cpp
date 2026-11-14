@@ -1,5 +1,6 @@
 #include "../include/game_concepts.hpp"
 #include <fstream>
+#include <algorithm>
 #include <map>
 #include <stdexcept>
 #include <utility>
@@ -10,10 +11,15 @@
 //   decks/*.json      { "name": "implemented", "cards": { "ETHER": 6, ... } }
 //                     card names: those registered in make_card()
 //                     (shenanigans.cpp)
-//   contracts/*.json  { "name": "two_per_faction",
-//                       "contracts": { "RED": 2, "YELLOW": 2, "BLUE": 2 } }
 //
-// Event sets list their cards with a number of copies:
+// Contract and event sets list their cards with a number of copies:
+//   contracts/*.json  { "name": "mixed", "contracts": [
+//                         { "count": 2, "name": "red favourite",
+//                           "factions": ["RED"], "rank": 1, "points": 2 },
+//                         { "count": 1, "name": "red or blue",
+//                           "factions": ["RED", "BLUE"], "rank": 1, "points": 1 } ] }
+//                     factions: one or more of RED, YELLOW, BLUE; rank: 1 to 3
+//                     (1: the most popular); name: optional
 //   events/*.json     { "name": "base", "events": [
 //                         { "count": 10, "kind": "ELECTION", "stealth": 3 },
 //                         { "count": 10, "kind": "PROPAGANDA",
@@ -90,19 +96,70 @@ starting_deck load_deck(const std::string& path){
 	return deck;
 }
 
-std::vector<faction> load_contracts(const std::string& path){
+std::vector<contract> load_contracts(const std::string& path){
 	static const std::map<std::string, faction> factions = {
 		{"RED", RED}, {"YELLOW", YELLOW}, {"BLUE", BLUE},
 	};
-	card_counts file = read_card_counts(path, "contracts");
-	std::vector<faction> contracts;
-	for (const auto& [faction_name, count] : file.counts) {
-		auto f = factions.find(faction_name);
-		if (f == factions.end()) {
-			throw std::runtime_error(path + ": unknown faction \"" + faction_name
-			                         + "\" (RED, YELLOW or BLUE)");
+	static const std::map<faction, std::string> names = {
+		{RED, "RED"}, {YELLOW, "YELLOW"}, {BLUE, "BLUE"},
+	};
+	nlohmann::ordered_json json = read_json_file(path);
+	if (!json.is_object() || !json.contains("contracts") || !json["contracts"].is_array()) {
+		throw std::runtime_error(path + ": missing \"contracts\" (a list)");
+	}
+	std::vector<contract> contracts;
+	size_t index = 0;
+	for (const auto& entry : json["contracts"]) {
+		std::string where = path + ", contract n°" + std::to_string(index++);
+		if (!entry.is_object()) {
+			throw std::runtime_error(where + ": a contract must be an object");
 		}
-		contracts.insert(contracts.end(), count, f->second);
+		for (const auto& key : entry.items()) {
+			if (key.key() != "count" && key.key() != "name" && key.key() != "factions"
+			    && key.key() != "rank" && key.key() != "points") {
+				throw std::runtime_error(where + ": unknown key \"" + key.key() + "\"");
+			}
+		}
+		if (!entry.contains("count") || !entry["count"].is_number_unsigned()) {
+			throw std::runtime_error(where + ": missing \"count\" (a non-negative integer)");
+		}
+		contract c;
+		if (!entry.contains("factions") || !entry["factions"].is_array() || entry["factions"].empty()) {
+			throw std::runtime_error(where + ": missing \"factions\" (a non-empty list)");
+		}
+		for (const auto& f : entry["factions"]) {
+			if (!f.is_string() || factions.count(f.get<std::string>()) == 0) {
+				throw std::runtime_error(where + ": factions are RED, YELLOW or BLUE");
+			}
+			faction parsed = factions.at(f.get<std::string>());
+			if (std::find(c.factions.begin(), c.factions.end(), parsed) != c.factions.end()) {
+				throw std::runtime_error(where + ": a faction is listed twice");
+			}
+			c.factions.push_back(parsed);
+		}
+		if (!entry.contains("rank") || !entry["rank"].is_number_integer()
+		    || entry["rank"].get<int>() < 1 || entry["rank"].get<int>() > factions_count) {
+			throw std::runtime_error(where + ": \"rank\" must be an integer from 1 to "
+			                         + std::to_string(factions_count));
+		}
+		c.rank = entry["rank"].get<int>();
+		if (!entry.contains("points") || !entry["points"].is_number_integer()) {
+			throw std::runtime_error(where + ": missing \"points\" (an integer)");
+		}
+		c.points = entry["points"].get<int>();
+		if (entry.contains("name")) {
+			if (!entry["name"].is_string()) {
+				throw std::runtime_error(where + ": \"name\" must be a string");
+			}
+			c.name = entry["name"].get<std::string>();
+		} else {
+			// default name, e.g. "RED+BLUE rank 1, 1 pt"
+			for (faction f : c.factions) {
+				c.name += (c.name.empty() ? "" : "+") + names.at(f);
+			}
+			c.name += " rank " + std::to_string(c.rank) + ", " + std::to_string(c.points) + " pt";
+		}
+		contracts.insert(contracts.end(), entry["count"].get<unsigned>(), c);
 	}
 	return contracts;
 }
