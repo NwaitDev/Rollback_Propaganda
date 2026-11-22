@@ -133,12 +133,21 @@ Le code C++ simule des parties entre mages contrôlés par des stratégies :
 
 ## Compiler et lancer
 
-- `make` compile les deux programmes : `./simulation` (une partie) et `./campaign` (une campagne de parties).
+- `make` compile les quatre programmes : `./simulation` (une partie), `./campaign` (une campagne de parties), `./server` (le moteur de jeu piloté par le protocole JSON, voir ci-dessous) et `./bot` (une stratégie de la simulation qui joue un siège du serveur).
 - `make play` joue une partie complète et affiche le gagnant. Options : `--deck`, `--contracts`, `--events`, `--popularity`, `--seed` (une même graine rejoue la même partie).
 - `make experiment EXP=experiments/base.json` joue une campagne et écrit ses résultats dans `results/<nom>/`.
-- `make check` compile avec les sanitizers et `-Werror`, puis joue des parties de test avec chaque deck et une petite campagne.
+- `make check` compile avec les sanitizers et `-Werror`, puis joue des parties de test avec chaque deck, une petite campagne (`experiments/smoke.json`) et des parties du serveur.
 - `make valgrind` joue une partie sous valgrind.
-- `make test` lance les tests (règles, joueur intelligent, métriques, fichiers, programmes) ; `make test-all` y ajoute `make check` et les tests du tableau de bord. Pour lancer une partie des tests ou en écrire de nouveaux, voir `tests/README.md`.
+- `make test` lance les tests (règles, joueur intelligent, métriques, fichiers, protocole, programmes) ; `make test-all` y ajoute `make check` et les tests du tableau de bord. Les tests Python utilisent `./bin/python3` (l'environnement virtuel) ; ailleurs : `make test PYTHON=python3`. Pour lancer une partie des tests ou en écrire de nouveaux, voir `tests/README.md`.
+
+## Moteur de jeu (serveur)
+
+`./server` joue une partie et dialogue sur ses entrée et sortie standard en JSON (une ligne par message) : il annonce tout ce qui se passe, avec l'état complet de la partie, pose les questions des sièges joués à distance et annonce les décisions des sièges qu'il joue lui-même (`--seat 1=smart`). Le protocole est décrit dans `docs/protocol.md`.
+
+- `./server --seat 0=remote --seat 1=smart --seat 2=random --seed 7` : une partie où le siège 0 répond sur l'entrée standard.
+- `scripts/play_with_bots.py --bot 0=smart --bot 1=random --bot 2=random -- --seed 7` : une partie où chaque siège est joué par un processus `./bot`.
+
+À graine égale, le serveur joue la même partie que `./simulation`, et un `./bot` décide comme la même stratégie jouée dans le moteur.
 
 ## Fichiers de configuration
 

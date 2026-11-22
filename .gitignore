@@ -1,6 +1,8 @@
 build/
 /simulation
 /campaign
+/server
+/bot
 .vscode/
 results/
 lib/

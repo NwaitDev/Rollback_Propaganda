@@ -110,6 +110,7 @@ private:
   std::shared_ptr<event> right;
   int modification;
   long id = -1;
+  friend class state_codec;
 };
 
 // --- shenanigans (grimory cards) ------------------------------------------

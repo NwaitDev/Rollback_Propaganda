@@ -4,8 +4,8 @@ Deux familles de tests, lancées ensemble par `make test` depuis la racine du pr
 
 | Dossier | Langage | Ce qui est testé |
 |---|---|---|
-| `tests/*.cpp` | C++ (doctest) | les règles, carte par carte, sur des parties construites à la main ; le joueur intelligent ; les métriques ; les fichiers de configuration ; des propriétés vérifiées sur des centaines de parties complètes |
-| `tests/integration/` | Python (pytest) | les programmes `./simulation` et `./campaign` : options et messages d'erreur, reproductibilité, fichiers CSV d'une petite campagne, sorties de référence de 24 parties complètes |
+| `tests/*.cpp` | C++ (doctest) | les règles, carte par carte, sur des parties construites à la main ; le joueur intelligent ; les métriques ; les fichiers de configuration ; le protocole du serveur (JSON des cartes et de l'état, reconstruction d'une partie) ; des propriétés vérifiées sur des centaines de parties complètes |
+| `tests/integration/` | Python (pytest) | les programmes `./simulation` et `./campaign` : options et messages d'erreur, reproductibilité, fichiers CSV d'une petite campagne, sorties de référence de 24 parties complètes ; `./server` et `./bot` (`test_server.py`) : forme des messages, erreurs du protocole, même partie que `./simulation` et mêmes décisions qu'un bot externe |
 
 Les tests du tableau de bord sont à part, dans `dashboard/tests/` (`make dashboard-test`).
 `make test-all` lance tout : `make test`, `make check` et `make dashboard-test`.

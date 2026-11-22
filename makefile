@@ -35,7 +35,8 @@ CXXFLAGS  := -std=c++17 -Wall -Wextra -Wno-unused-parameter
 SRC_DIR   := src
 BUILD_DIR := build
 SOURCES   := $(wildcard $(SRC_DIR)/*.cpp)
-MAINS     := $(SRC_DIR)/main.cpp $(SRC_DIR)/campaign_main.cpp
+MAINS     := $(SRC_DIR)/main.cpp $(SRC_DIR)/campaign_main.cpp \
+             $(SRC_DIR)/server_main.cpp $(SRC_DIR)/bot_main.cpp
 COMMON    := $(filter-out $(MAINS),$(SOURCES))
 EXP       ?= experiments/base.json
 PYTHON    ?= ./bin/python3
@@ -53,6 +54,8 @@ RELEASE_FLAGS := -O2 -g
 RELEASE_OBJS  := $(call objects_in,$(RELEASE_DIR))
 BINARY        := simulation
 CAMPAIGN      := campaign
+SERVER        := server
+BOT           := bot
 
 
 # --- variante check --------------------------------------------------------
@@ -66,6 +69,8 @@ CHECK_FLAGS   := -O1 -g -Werror -fno-omit-frame-pointer \
 CHECK_OBJS    := $(call objects_in,$(CHECK_DIR))
 CHECK_BINARY  := $(CHECK_DIR)/simulation
 CHECK_CAMPAIGN := $(CHECK_DIR)/campaign
+CHECK_SERVER  := $(CHECK_DIR)/server
+CHECK_BOT     := $(CHECK_DIR)/bot
 CHECK_RUNS    ?= 5
 
 
@@ -85,7 +90,7 @@ TEST_ARGS     ?=
 .PHONY: all run play experiment check valgrind dashboard dashboard-test test test-all golden clean
 .DELETE_ON_ERROR:
 
-all: $(BINARY) $(CAMPAIGN)
+all: $(BINARY) $(CAMPAIGN) $(SERVER) $(BOT)
 
 run: $(BINARY)
 	./$(BINARY) $(ARGS)
@@ -98,7 +103,7 @@ experiment: $(CAMPAIGN)
 
 # chaque deck joue CHECK_RUNS parties, mélangées différemment ;
 # le journal de chaque partie reste dans build/check/<deck>_<N>.log
-check: $(CHECK_BINARY) $(CHECK_CAMPAIGN)
+check: $(CHECK_BINARY) $(CHECK_CAMPAIGN) $(CHECK_SERVER) $(CHECK_BOT)
 	@for deck in $(DECKS); do \
 		echo "=== deck $$deck"; \
 		for i in $$(seq 1 $(CHECK_RUNS)); do \
@@ -118,7 +123,18 @@ check: $(CHECK_BINARY) $(CHECK_CAMPAIGN)
 		|| { echo "--- ERREUR (journal complet : $(CHECK_DIR)/smoke.log)"; \
 		     grep -E "runtime error|ERROR|SUMMARY|terminate|error:" $(CHECK_DIR)/smoke.log | head -20; exit 1; }
 	@echo "--- OK"
-	@echo "=== $(words $(DECKS)) decks x $(CHECK_RUNS) parties et une campagne sans warning, erreur mémoire ni comportement indéfini"
+	@echo "=== serveur : stratégies intégrées, puis bots externes (scripts/play_with_bots.py)"
+	@for deck in $(DECKS); do \
+		./$(CHECK_SERVER) --quiet --deck $$deck --seat 0=smart --seat 1=random --seat 2=smart:8 \
+			> $(CHECK_DIR)/server.log 2> $(CHECK_DIR)/server.err \
+		&& python3 scripts/play_with_bots.py --server $(CHECK_SERVER) --bot-program $(CHECK_BOT) \
+			--bot 0=smart --bot 1=random --bot 2=smart:8 -- --light --deck $$deck \
+			>> $(CHECK_DIR)/server.log 2>> $(CHECK_DIR)/server.err \
+		|| { echo "--- ERREUR avec $$deck (journal : $(CHECK_DIR)/server.err)"; \
+		     grep -E "runtime error|ERROR|SUMMARY|terminate|error" $(CHECK_DIR)/server.err | head -20; exit 1; }; \
+	done
+	@echo "--- OK"
+	@echo "=== $(words $(DECKS)) decks x $(CHECK_RUNS) parties, une campagne et des parties du serveur sans warning, erreur mémoire ni comportement indéfini"
 
 valgrind: $(BINARY)
 	valgrind -s --leak-check=full --track-origins=yes ./$(BINARY) --play $(ARGS)
@@ -132,7 +148,7 @@ dashboard-test: $(CAMPAIGN)
 	ROLLBACK_TEST_RESULTS=build/dashboard_test/results $(PYTHON) -m pytest -q dashboard/tests
 
 # the C++ tests open the files of the project: they run from its root
-test: $(TEST_BINARY) $(BINARY) $(CAMPAIGN)
+test: $(TEST_BINARY) $(BINARY) $(CAMPAIGN) $(SERVER) $(BOT)
 	./$(TEST_BINARY) $(TEST_ARGS)
 	$(PYTHON) -m pytest -q tests/integration
 
@@ -142,7 +158,7 @@ golden: $(BINARY)
 	tests/integration/make_golden.sh
 
 clean:
-	rm -rf $(BUILD_DIR) $(BINARY) $(CAMPAIGN)
+	rm -rf $(BUILD_DIR) $(BINARY) $(CAMPAIGN) $(SERVER) $(BOT)
 
 
 # --- édition de liens ------------------------------------------------------
@@ -152,6 +168,18 @@ $(BINARY): $(RELEASE_OBJS) $(RELEASE_DIR)/main.o
 
 $(CAMPAIGN): $(RELEASE_OBJS) $(RELEASE_DIR)/campaign_main.o
 	$(CXX) $(CXXFLAGS) $(RELEASE_FLAGS) $^ -o $@
+
+$(SERVER): $(RELEASE_OBJS) $(RELEASE_DIR)/server_main.o
+	$(CXX) $(CXXFLAGS) $(RELEASE_FLAGS) $^ -o $@
+
+$(BOT): $(RELEASE_OBJS) $(RELEASE_DIR)/bot_main.o
+	$(CXX) $(CXXFLAGS) $(RELEASE_FLAGS) $^ -o $@
+
+$(CHECK_SERVER): $(CHECK_OBJS) $(CHECK_DIR)/server_main.o
+	$(CXX) $(CXXFLAGS) $(CHECK_FLAGS) $^ -o $@
+
+$(CHECK_BOT): $(CHECK_OBJS) $(CHECK_DIR)/bot_main.o
+	$(CXX) $(CXXFLAGS) $(CHECK_FLAGS) $^ -o $@
 
 $(CHECK_BINARY): $(CHECK_OBJS) $(CHECK_DIR)/main.o
 	$(CXX) $(CXXFLAGS) $(CHECK_FLAGS) $^ -o $@
