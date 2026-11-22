@@ -1,4 +1,5 @@
 #include "../include/game_concepts.hpp"
+#include "../include/setup.hpp"
 #include "../include/text_view.hpp"
 
 #include <cstddef>
@@ -9,50 +10,6 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
-
-const std::string default_deck = "decks/implemented.json";
-const std::string default_contracts = "contracts/two_per_faction.json";
-const std::string default_events = "events/base.json";
-
-// deck_paths: either a single deck for every mage, or one deck per mage
-void init_game(game& g, const std::vector<std::string>& deck_paths,
-               const std::string& events_path){
-	// the contracts are dealt at random by game::setup()
-	g.add_player(std::make_unique<random_player>(10));
-	g.add_player(std::make_unique<random_player>(10));
-	g.add_player(std::make_unique<random_player>(10));
-
-	std::vector<std::unique_ptr<player>>& players = g.get_players_ref();
-	if (deck_paths.size() != 1 && deck_paths.size() != players.size()) {
-		throw std::runtime_error("give either one --deck for every mage, or one per mage ("
-		                         + std::to_string(players.size()) + ")");
-	}
-	for (size_t i = 0; i < players.size(); ++i) {
-		const std::string& path = (deck_paths.size() == 1) ? deck_paths[0] : deck_paths[i];
-		players[i]->give_starting_deck(load_deck(path));
-	}
-
-	for (const event& e : load_events(events_path)) {
-		g.add_event(e);
-	}
-}
-
-
-// parses an integer in [min, max], or throws std::invalid_argument
-long long parse_integer(const std::string& value, long long min, long long max){
-	size_t parsed = 0;
-	long long n = 0;
-	try {
-		n = std::stoll(value, &parsed);
-	} catch (const std::exception&) {
-		parsed = 0;
-	}
-	if (value.empty() || parsed != value.size() || n < min || n > max) {
-		throw std::invalid_argument("expects an integer between " + std::to_string(min)
-		                            + " and " + std::to_string(max));
-	}
-	return n;
-}
 
 // usage: simulation [--play] [--deck <file.json>]... [--contracts <file.json>]
 //                   [--events <file.json>]
@@ -70,9 +27,8 @@ int main(int argc, char* argv[]){
 		+ " [--play] [--deck <file.json>]... [--contracts <file.json>] [--events <file.json>]"
 		+ " [--popularity <n>] [--seed <n>]";
 	bool play = false;
-	std::vector<std::string> deck_paths;
-	std::string contracts_path = default_contracts;
-	std::string events_path = default_events;
+	game_files files;
+	files.deck_paths.clear();
 	int popularity = 0;
 	unsigned seed = std::random_device{}();
 	for (int i = 1; i < argc; ++i) {
@@ -82,11 +38,11 @@ int main(int argc, char* argv[]){
 			if (arg == "--play") {
 				play = true;
 			} else if (arg == "--deck" && has_value) {
-				deck_paths.push_back(argv[++i]);
+				files.deck_paths.push_back(argv[++i]);
 			} else if (arg == "--contracts" && has_value) {
-				contracts_path = argv[++i];
+				files.contracts_path = argv[++i];
 			} else if (arg == "--events" && has_value) {
-				events_path = argv[++i];
+				files.events_path = argv[++i];
 			} else if (arg == "--popularity" && has_value) {
 				popularity = static_cast<int>(parse_integer(argv[++i], -1000000, 1000000));
 			} else if (arg == "--seed" && has_value) {
@@ -100,8 +56,8 @@ int main(int argc, char* argv[]){
 			return 1;
 		}
 	}
-	if (deck_paths.empty()) {
-		deck_paths.push_back(default_deck);
+	if (files.deck_paths.empty()) {
+		files.deck_paths.push_back(default_deck);
 	}
 
 	std::cout<<"seed: "<<seed<<std::endl;
@@ -111,10 +67,11 @@ int main(int argc, char* argv[]){
 	g.add_observer(&logger);
 
 	try {
-		init_game(g, deck_paths, events_path);
-		g.set_contract_pile(load_contracts(contracts_path));
-		g.shuffle();
-		g.setup();
+		std::vector<std::unique_ptr<controller>> seats;
+		for (int i = 0; i < 3; ++i) {
+			seats.push_back(std::make_unique<random_player>(10));
+		}
+		prepare_game(g, std::move(seats), files);
 	} catch (const std::exception& e) {
 		std::cerr<<"error: "<<e.what()<<std::endl;
 		return 1;
