@@ -1,6 +1,5 @@
 #include "../include/game_concepts.hpp"
 #include <cstddef>
-#include <iostream>
 #include <stdexcept>
 #include <memory>
 #include <ostream>
@@ -84,41 +83,27 @@ void game::add_player(std::unique_ptr<player> p){
 }
 
 void game::shuffle(){
-	std::cout<<"shuffling the future_events!"<<std::endl;
 	future_events.shuffle(generator);
-}
-
-void game::view(){
-	std::cout<<"nb players: "<<players.size()<<"."<<std::endl;
-	for (std::unique_ptr<player>& p : players) {
-		p->view(); std::cout<<std::endl;
-	}
-	future_events.view();
-	present_events.view();
-	past_events.view();
-	std::cout<<"(oblivion)\n";
-	for (size_t i = 0; i < oblivion.size(); ++i) {
-		std::cout<<"card n°"<<i<<": "; oblivion[i].view(); std::cout<<std::endl;
-	}
+	observer().future_shuffled(*this);
 }
 
 bool game::play_game(long max_turns){
-	std::cout<<"The game is running..."<<std::endl;
+	observer().game_started(*this);
 	while (future_events.remaining_cards()>0) {
 		if (max_turns > 0 && elapsed_turns >= max_turns) {
-			std::cout<<"the game is blocked after "<<elapsed_turns<<" turns!"<<std::endl;
+			observer().game_blocked(*this);
 			return false;
 		}
-		std::cout<<"turn:"<<elapsed_turns<<".\tremaining cards: "<<future_events.remaining_cards()<<std::endl;
 		play_turn();
 	}
-	std::cout<<"the game is over!"<<std::endl;
+	observer().game_finished(*this);
 	return true;
 }
 
 void game::play_turn(){
 	turn_rolled_back = false;
 	outcome = turn_outcome::RESOLVED;
+	observer().turn_started(*this);
 
 	preparation_phase();
 
@@ -161,9 +146,9 @@ void game::reveal_phase(){
 // rollback).
 bool game::reveal_one_event(){
 	present_events.append_from_future(future_events);
+	observer().event_revealed(*this, present_events.get_last_event());
 
 	if(present_events.get_stealth()>max_stealth){
-		std::cout<<"forced rollback!"<<std::endl;
 		outcome = turn_outcome::STEALTH_ROLLBACK;
 		rollback();
 		return false;
@@ -173,28 +158,20 @@ bool game::reveal_one_event(){
 
 		// these first event kinds have no effect on reveal phase
 		case OPERATOR:
-			std::cout<<"multi_propaganda!"<<std::endl;
-			return true;
 		case PROPAGANDA:
-			std::cout<<"propaganda!"<<std::endl;
-			return true;
 		case ELECTION:
-			std::cout<<"election!"<<std::endl;
-			return true;
 		case MISTAKE:
-			std::cout<<"mistake!"<<std::endl;
 			return true;
 
 		// events that trigger during reveal phase
 		case EXPLOSION:
-			std::cout<<"explosion!"<<std::endl;
 			oblivion.push_back(present_events.draw_last());
 			outcome = turn_outcome::EXPLOSION_ROLLBACK;
 			rollback();
 			return false;
 		case COLLAPSE:
-			std::cout<<"forced execute!"<<std::endl;
 			present_events.set_stealth(max_stealth);
+			observer().collapse_revealed(*this);
 			return false;
 	}
 	return true;
@@ -208,6 +185,7 @@ void game::rollback(){
 		p->take_back_shenanigan();
 	}
 	turn_rolled_back = true;
+	observer().rolled_back(*this, outcome);
 }
 
 void game::shenanigan_phase(){

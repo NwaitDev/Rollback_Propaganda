@@ -71,7 +71,8 @@ public:
   event(event &&other) = default;
   event &operator=(event &&other) = default;
 
-  void view() const;
+  // text of the card, e.g. "2 RED (4)" (see text_view.hpp)
+  std::string describe() const;
   stealth get_stealth() const;
   int get_value() const;
   event_kind get_kind() const;
@@ -252,10 +253,11 @@ public:
   player(stealth greed, strategy strat);
   void sign_contract(const contract &c);
   void score_points(int amount);
-  void view() const;
   int get_score() const;
   const contract &get_contract() const;
-  int get_greed();
+  int get_greed() const;
+  inline strategy get_strategy() const { return strat; }
+  inline const std::string &get_deck_name() const { return deck_name; }
   inline size_t grimory_size() const { return deck.size(); }
   inline void refill_hand() { cards_in_hand.draw_up_to_limit(deck); }
   inline const hand &get_hand() const { return cards_in_hand; }
@@ -382,7 +384,6 @@ public:
   const event get_last_event();
   const event draw_last();
   inline bool is_empty() const {return present.empty();};
-  void view();
   inline const std::deque<event> &show_events() const {return present;};
 
 private:
@@ -402,7 +403,8 @@ public:
   // the next event to be revealed; the future is not empty
   inline const event &top() const { return future.back(); }
   void shuffle(std::mt19937 &rng);
-  void view();
+  // bottom first: the top of the future is the last card
+  inline const std::vector<event> &show_events() const { return future; }
 
 private:
   std::vector<event> future = std::vector<event>();
@@ -413,7 +415,7 @@ class past {
 
 public:
   void pass(const event &executed_event);
-  void view() const;
+  inline const std::vector<event> &show_events() const { return past; }
 
 private:
   std::vector<event> past = std::vector<event>();
@@ -431,6 +433,25 @@ enum class tiebreak { NONE, GRIMORY, DRAW };
 class game_observer {
 public:
   virtual ~game_observer() = default;
+  // the future has just been shuffled (before the setup)
+  virtual void future_shuffled(game &g) {}
+  // play_game() starts, and stops: the future is empty (finished) or the
+  // turn limit is reached (blocked)
+  virtual void game_started(game &g) {}
+  virtual void game_finished(game &g) {}
+  virtual void game_blocked(game &g) {}
+  // a turn starts (before the Phase de Manigances)
+  virtual void turn_started(game &g) {}
+  // an event has just been added to the present (Phase de Révélation or
+  // Précipitation); the reveal rules (rollback, collapse) apply after
+  virtual void event_revealed(game &g, const event &e) {}
+  // the present goes back on the future and the turn ends; for an
+  // explosion, the explosion is already in the oblivion
+  virtual void rolled_back(game &g, turn_outcome cause) {}
+  // a collapse stops the Phase de Révélation
+  virtual void collapse_revealed(game &g) {}
+  // every mage has scored their contract
+  virtual void election_resolved(game &g) {}
   // a mage schemes a card (Phase de Manigances)
   virtual void card_schemed(game &g, const player &p, const shenanigan &card) {}
   // a card stays in a mage's hand during the Phase de Manigances
@@ -449,6 +470,37 @@ public:
   virtual void turn_ended(game &g, turn_outcome outcome) {}
 };
 
+// Forwards every notification to several observers, in the order they were
+// added. The observers are not owned.
+class observer_list : public game_observer {
+public:
+  inline void add(game_observer *o) { observers.push_back(o); }
+  inline void clear() { observers.clear(); }
+  inline bool empty() const { return observers.empty(); }
+
+  void future_shuffled(game &g) override;
+  void game_started(game &g) override;
+  void game_finished(game &g) override;
+  void game_blocked(game &g) override;
+  void turn_started(game &g) override;
+  void event_revealed(game &g, const event &e) override;
+  void rolled_back(game &g, turn_outcome cause) override;
+  void collapse_revealed(game &g) override;
+  void election_resolved(game &g) override;
+  void card_schemed(game &g, const player &p, const shenanigan &card) override;
+  void card_kept_in_hand(game &g, const player &p, const shenanigan &card) override;
+  void card_revealed(game &g, const player &p, const shenanigan &card) override;
+  void spell_failed(game &g, const player &p, const shenanigan &card) override;
+  void event_resolved(game &g, const event &e) override;
+  void memory_lapse_received(game &g, const player &target) override;
+  void ether_leaked(game &g, const player &target) override;
+  void immunity_triggered(game &g, const player &immune) override;
+  void turn_ended(game &g, turn_outcome outcome) override;
+
+private:
+  std::vector<game_observer *> observers;
+};
+
 
 class game {
 public:
@@ -463,7 +515,6 @@ public:
   // running after max_turns turns (0: no limit), as a game can loop forever
   bool play_game(long max_turns = 0);
   inline long get_elapsed_turns() const { return elapsed_turns; }
-  void view();
 
   inline std::vector<int> &get_scores_ref() { return scores; };
   inline std::vector<std::unique_ptr<player>> &get_players_ref() {
@@ -479,9 +530,11 @@ public:
   // a random draw (index in the players). `how` tells how a tie was broken.
   size_t determine_winner(tiebreak *how = nullptr);
 
-  // the observer is not owned by the game; nullptr: no observer
-  inline void set_observer(game_observer *o) { observer_ptr = o; }
-  inline game_observer &observer() { return observer_ptr ? *observer_ptr : no_observer; }
+  // The observers are not owned by the game and are notified in the order
+  // they were added. set_observer() replaces them all by one (nullptr: none).
+  inline void add_observer(game_observer *o) { if (o) observers.add(o); }
+  inline void set_observer(game_observer *o) { observers.clear(); add_observer(o); }
+  inline game_observer &observer() { return observers; }
   size_t seat_of(const player &p) const;
   inline std::mt19937 &rng() { return generator; }
   inline size_t random_below(size_t n) { return ::random_below(generator, n); }
@@ -522,8 +575,7 @@ private:
   std::vector<contract> contract_pile; // undealt contracts, face down
   bool turn_rolled_back = false;
   turn_outcome outcome = turn_outcome::RESOLVED;
-  game_observer no_observer;
-  game_observer *observer_ptr = nullptr;
+  observer_list observers;
   long next_event_id = 0;
 };
 

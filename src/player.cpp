@@ -1,5 +1,4 @@
 #include "../include/game_concepts.hpp"
-#include <iostream>
 #include <stdexcept>
 #include <utility>
 
@@ -13,24 +12,7 @@ int player::get_score() const { return points; }
 
 const contract &player::get_contract() const { return signed_contract; }
 
-int player::get_greed() { return greed; }
-
-void player::view() const {
-  std::cout << "contract: " << (signed_contract.name.empty() ? "none" : signed_contract.name);
-  std::cout << " / strategy: ";
-  switch (strat) {
-  case RANDOM:
-    std::cout << "RANDOM";
-    break;
-  case SMART:
-    std::cout << "SMART";
-    break;
-  }
-  std::cout << " / deck: " << deck_name;
-  std::cout << " / greed: " << greed << " (score :" << points << ")";
-  std::cout << " / grimory: " << deck.size()
-            << ", hand: " << cards_in_hand.get_nb_cards();
-}
+int player::get_greed() const { return greed; }
 
 void player::give_starting_deck(starting_deck d) {
   deck_name = d.name;

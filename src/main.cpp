@@ -1,4 +1,5 @@
 #include "../include/game_concepts.hpp"
+#include "../include/text_view.hpp"
 
 #include <cstddef>
 #include <exception>
@@ -106,6 +107,8 @@ int main(int argc, char* argv[]){
 	std::cout<<"seed: "<<seed<<std::endl;
 
 	game g = game(21, seed, popularity);
+	text_logger logger(std::cout);
+	g.add_observer(&logger);
 
 	try {
 		init_game(g, deck_paths, events_path);
@@ -117,18 +120,16 @@ int main(int argc, char* argv[]){
 		return 1;
 	}
 
-	g.view();
+	print_game(std::cout, g);
 
 	if (play) {
 		g.play_game();
 		std::vector<std::unique_ptr<player>>& players = g.get_players_ref();
 		for (std::unique_ptr<player>& p : players) {
-			p->view(); std::cout<<std::endl;
+			std::cout<<describe(*p)<<std::endl;
 		}
 		size_t winner = g.determine_winner();
-		std::cout<<"winner: player n°"<<winner<<" (";
-		players[winner]->view();
-		std::cout<<")"<<std::endl;
+		std::cout<<"winner: player n°"<<winner<<" ("<<describe(*players[winner])<<")"<<std::endl;
 	}
 
 	return 0;

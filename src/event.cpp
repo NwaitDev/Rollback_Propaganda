@@ -1,5 +1,5 @@
 #include "../include/game_concepts.hpp"
-#include <iostream>
+#include <string>
 #include <stdexcept>
 
 
@@ -44,71 +44,46 @@ stealth event::get_stealth() const {
 	return st;
 }
 
-void event::view() const {
+// text of a card, as printed by the text views (see text_view.cpp)
+std::string event::describe() const {
 	switch (kind) {
-
-        case OPERATOR:
-		switch (type.op) {
-            case CONVERGENCE:
-			left->view();
-			std::cout<<" AND ";
-			right->view();
-			break;
-            case DIVERGENCE:
-			left->view();
-			std::cout<<" OR ";
-			right->view();
-            break;
-        }
-		break;
-        case PROPAGANDA:
-			std::cout<<value;
+		case OPERATOR:
+			return left->describe()
+				+ ((type.op == CONVERGENCE) ? " AND " : " OR ")
+				+ right->describe();
+		case PROPAGANDA: {
+			std::string text = std::to_string(value);
 			switch (type.faction) {
-				case RED:
-				std::cout<<" RED";
-				break;
-				case YELLOW:
-				std::cout<<" YELLOW";
-				break;
-				case BLUE:
-				std::cout<<" BLUE";
-				break;
-				case ANY:
-				std::cout<<" ANY";
-				break;
-				case NONE:
-				std::cout<<" NONE?";
-				break;
+				case RED: text += " RED"; break;
+				case YELLOW: text += " YELLOW"; break;
+				case BLUE: text += " BLUE"; break;
+				case ANY: text += " ANY"; break;
+				case NONE: text += " NONE?"; break;
 			}
-			std::cout<<" ("<<st<<")";
-			break;
-        case ELECTION:
-			std::cout<<"ELECTION "<<" ("<<st<<")";
-			break;
-        case EXPLOSION:
-			std::cout<<"EXPLOSION";
-			break;
-        case COLLAPSE:
-			std::cout<<"COLLAPSE";
-			break;
-        case MISTAKE:
-			std::cout<<"MISTAKE (x"<<value<<")";
-          break;
-        }
+			return text + " (" + std::to_string(st) + ")";
+		}
+		case ELECTION:
+			return "ELECTION  (" + std::to_string(st) + ")";
+		case EXPLOSION:
+			return "EXPLOSION";
+		case COLLAPSE:
+			return "COLLAPSE";
+		case MISTAKE:
+			return "MISTAKE (x" + std::to_string(value) + ")";
+	}
+	return "?";
 }
 
 int event::get_value() const {
 	if (get_kind()!=PROPAGANDA) {
-		std::cout<<"error thrown by "; view();
-		throw std::runtime_error("can't get the value of a non-propaganda event");
+		throw std::runtime_error("can't get the value of a non-propaganda event: " + describe());
 	}
 	return value+modification;
 }
 
 enum faction event::get_faction() const {
 	if (get_kind()!=PROPAGANDA) {
-		std::cout<<"error thrown by "; view();
-		throw std::runtime_error("can't get the faction of a non-propaganda event");
+		throw std::runtime_error("can't get the faction of a non-propaganda event: " + describe());
 	}
 	return type.faction;
 }
@@ -130,8 +105,7 @@ bool event::is_propaganda_card() const {
 
 enum event_operator event::get_operator() const {
 	if (kind != OPERATOR) {
-		std::cout<<"error thrown by "; view();
-		throw std::runtime_error("can't get the operator of a non-operator event");
+		throw std::runtime_error("can't get the operator of a non-operator event: " + describe());
 	}
 	return type.op;
 }

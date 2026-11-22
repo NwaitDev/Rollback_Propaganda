@@ -1,7 +1,6 @@
 #include "../include/game_concepts.hpp"
 #include <algorithm>
 #include <cstdlib>
-#include <iostream>
 #include <stdexcept>
 
 // Resolution of the events of the present (Phase de Résolution).
@@ -98,5 +97,5 @@ void game::resolve_election(){
 	for (std::unique_ptr<player>& p : players) {
 		p->score_points(p->get_contract().points_earned(scores));
 	}
-	std::cout<<"ELECTION EXECUTEE"<<std::endl;
+	observer().election_resolved(*this);
 }

@@ -1,4 +1,5 @@
 #include "../include/campaign.hpp"
+#include "../include/text_view.hpp"
 #include <algorithm>
 #include <cmath>
 #include <filesystem>
@@ -149,17 +150,6 @@ experiment experiment::with_greed(stealth greed) const {
 
 // --- games ---------------------------------------------------------------------
 
-namespace {
-
-// silences std::cout while it exists (the game prints every step)
-struct silence {
-	std::streambuf* saved;
-	silence() : saved(std::cout.rdbuf(nullptr)) {}
-	~silence() { std::cout.rdbuf(saved); std::cout.clear(); }
-};
-
-}
-
 std::vector<unsigned> game_seeds(const experiment& exp){
 	std::mt19937 campaign_rng(exp.seed);
 	std::vector<unsigned> seeds;
@@ -264,9 +254,12 @@ void game_stats::turn_ended(game& g, turn_outcome outcome){
 
 game_result run_game(const experiment& exp, game_type type, long index,
                      unsigned seed, bool verbose){
-	std::unique_ptr<silence> quiet = verbose ? nullptr : std::make_unique<silence>();
-
 	game g(exp.max_stealth, seed, exp.popularity);
+	// a replayed game is written as ./simulation does
+	text_logger logger(std::cout);
+	if (verbose) {
+		g.add_observer(&logger);
+	}
 	game_result result(g.get_scores_ref(), exp.players);
 	result.type = type;
 	result.index = index;
@@ -308,9 +301,9 @@ game_result run_game(const experiment& exp, game_type type, long index,
 
 	g.shuffle();
 	g.setup();
-	g.set_observer(&result.stats);
+	g.add_observer(&result.stats);
 	if (verbose) {
-		g.view();
+		print_game(std::cout, g);
 	}
 	result.finished = g.play_game(exp.max_turns);
 	g.set_observer(nullptr);
@@ -326,7 +319,7 @@ game_result run_game(const experiment& exp, game_type type, long index,
 	result.end_cosmos = g.cosmos_cards.size();
 	if (verbose) {
 		for (std::unique_ptr<player>& p : players) {
-			p->view(); std::cout<<std::endl;
+			std::cout<<describe(*p)<<std::endl;
 		}
 		if (result.finished) {
 			std::cout<<"winner: player n°"<<result.winner<<std::endl;

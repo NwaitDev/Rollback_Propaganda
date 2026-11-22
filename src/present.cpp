@@ -1,6 +1,5 @@
 #include "../include/game_concepts.hpp"
 #include <cstddef>
-#include <iostream>
 
 // the present is stored in reveal order: front() is the first revealed event,
 // back() is the last revealed one.
@@ -13,14 +12,6 @@ const event present::draw_last(){
 
 const event present::get_last_event(){
 	return present.back();
-}
-
-void present::view(){
-	size_t i = 0;
-	std::cout<<"(present)\n";
-	for (const event& card : present) {
-		std::cout<<"card n°"<< i++ <<": "; card.view(); std::cout<<std::endl;
-	}
 }
 
 stealth present::append_from_future(future& future){
