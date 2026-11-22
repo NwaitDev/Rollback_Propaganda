@@ -11,7 +11,7 @@ Les tests du tableau de bord sont à part, dans `dashboard/tests/` (`make dashbo
 `make test-all` lance tout : `make test`, `make check` et `make dashboard-test`.
 
 Prérequis : g++ (C++17), make, Python 3 avec pytest (`pip install pytest`).
-doctest est fourni dans `third_party/doctest/doctest.h`, rien à installer.
+doctest (version 2.4.11, licence MIT) est fourni dans `third_party/doctest/doctest.h`, rien à installer.
 
 ## Lancer les tests
 

@@ -1,0 +1,71 @@
+file,column,metric,description
+campaigns.csv,campaign,,Nom de la campagne (champ name du fichier d'expérience).
+campaigns.csv,game_type,,Type de parties : random_only (joueurs aléatoires seulement) ou with_smart (un smart player parmi des joueurs aléatoires).
+campaigns.csv,games,,Nombre de parties jouées de ce type à ce niveau d'avidité.
+campaigns.csv,seed,,Graine de la campagne.
+campaigns.csv,players,,Nombre de mages par partie.
+campaigns.csv,random_greed,,Avidité des joueurs aléatoires : ils révèlent tant que la furtivité est en dessous.
+campaigns.csv,smart_greed,,Avidité du smart player (celle des joueurs aléatoires par défaut).
+campaigns.csv,hand_size,,Taille de la main.
+campaigns.csv,deck,,Deck de départ de chaque mage.
+campaigns.csv,events,,Fichier des cartes événements.
+campaigns.csv,contracts,,Fichier des contrats.
+campaigns.csv,extra_card,,Carte ajoutée au grimoire d'un seul mage (vide si aucune).
+campaigns.csv,max_stealth,,Seuil de furtivité (21 par défaut).
+campaigns.csv,popularity,,Popularité de départ de chaque faction (0 par défaut).
+campaigns.csv,max_turns,,Limite de tours au-delà de laquelle une partie est bloquée (1000 par défaut).
+campaigns.csv,finished_games,,"Parties terminées (Futur vide). Les métriques ne portent que sur elles, sauf M20."
+campaigns.csv,blocked_games,M20,Parties arrêtées à la limite de tours.
+campaigns.csv,tiebreak_grimory_games,M4,"Parties terminées à égalité de points, départagées par la taille du grimoire."
+campaigns.csv,tiebreak_draw_games,M4,"Parties terminées à égalité de points et de grimoire, départagées par tirage."
+campaigns.csv,smart_wins,M5,Parties terminées gagnées par le smart player (vide pour random_only).
+campaigns.csv,holder_wins,M8,Parties terminées gagnées par le mage qui a reçu la carte ajoutée (vide sans carte ajoutée).
+campaigns.csv,turns_mean,M14,Moyenne par partie terminée : nombre de tours.
+campaigns.csv,turns_sd,M14,Écart-type par partie terminée : nombre de tours.
+campaigns.csv,resolved_turns_mean,M14,Moyenne par partie terminée : tours allés jusqu'à la Résolution (sans Rollback).
+campaigns.csv,resolved_turns_sd,M14,Écart-type par partie terminée : tours allés jusqu'à la Résolution (sans Rollback).
+campaigns.csv,elections_resolved_mean,M14,Moyenne par partie terminée : élections résolues.
+campaigns.csv,elections_resolved_sd,M14,Écart-type par partie terminée : élections résolues.
+campaigns.csv,stealth_rollbacks_per_turn,M15,"Part des tours finis par un dépassement de furtivité, sur l'ensemble des parties terminées (les Explosions ne comptent pas)."
+campaigns.csv,events_per_resolved_turn,M16,Événements résolus par tour allé jusqu'à la Résolution (rapport des totaux).
+campaigns.csv,lead_changes_mean,M17,Moyenne par partie terminée : changements de faction en tête (le passage à une égalité en tête compte comme un changement).
+campaigns.csv,lead_changes_sd,M17,Écart-type par partie terminée : changements de faction en tête (le passage à une égalité en tête compte comme un changement).
+campaigns.csv,max_popularity_mean,M17,Moyenne par partie terminée : plus haute popularité atteinte par une faction.
+campaigns.csv,max_popularity_sd,M17,Écart-type par partie terminée : plus haute popularité atteinte par une faction.
+campaigns.csv,max_popularity_p10,M17,10e centile de la plus haute popularité atteinte par partie.
+campaigns.csv,max_popularity_p50,M17,Médiane de la plus haute popularité atteinte par partie.
+campaigns.csv,max_popularity_p90,M17,90e centile de la plus haute popularité atteinte par partie.
+campaigns.csv,decided_turn_mean,M18,Moyenne par partie terminée : tour à partir duquel le futur gagnant garde le plus de points (égalités comprises).
+campaigns.csv,decided_turn_sd,M18,Écart-type par partie terminée : tour à partir duquel le futur gagnant garde le plus de points (égalités comprises).
+campaigns.csv,decided_turn_ratio_mean,M18,"Moyenne par partie terminée : tour décisif rapporté à la durée de la partie (0 = joué d'avance, 1 = joué au dernier tour)."
+campaigns.csv,decided_turn_ratio_sd,M18,"Écart-type par partie terminée : tour décisif rapporté à la durée de la partie (0 = joué d'avance, 1 = joué au dernier tour)."
+campaigns.csv,final_margin_mean,M19,Moyenne par partie terminée : écart de points entre le premier et le deuxième en fin de partie.
+campaigns.csv,final_margin_sd,M19,Écart-type par partie terminée : écart de points entre le premier et le deuxième en fin de partie.
+campaigns.csv,end_grimory_mean,M21,"Moyenne par mage, sur les parties terminées : cartes restantes dans le grimoire en fin de partie."
+campaigns.csv,end_grimory_sd,M21,"Écart-type par mage, sur les parties terminées : cartes restantes dans le grimoire en fin de partie."
+campaigns.csv,end_hand_mean,M21,"Moyenne par mage, sur les parties terminées : cartes restantes en main en fin de partie."
+campaigns.csv,end_hand_sd,M21,"Écart-type par mage, sur les parties terminées : cartes restantes en main en fin de partie."
+campaigns.csv,end_cosmos_mean,M21,Moyenne par partie terminée : cartes dans le Cosmos en fin de partie.
+campaigns.csv,end_cosmos_sd,M21,Écart-type par partie terminée : cartes dans le Cosmos en fin de partie.
+campaigns.csv,memory_lapses_received_mean,M22,Moyenne par partie terminée : Trous de mémoire reçus d'un adversaire.
+campaigns.csv,memory_lapses_received_sd,M22,Écart-type par partie terminée : Trous de mémoire reçus d'un adversaire.
+campaigns.csv,ethers_leaked_mean,M22,Moyenne par partie terminée : éthers perdus par Fuite d'éther.
+campaigns.csv,ethers_leaked_sd,M22,Écart-type par partie terminée : éthers perdus par Fuite d'éther.
+campaigns.csv,immunities_triggered_mean,M22,Moyenne par partie terminée : choix adverses annulés par une Immunité.
+campaigns.csv,immunities_triggered_sd,M22,Écart-type par partie terminée : choix adverses annulés par une Immunité.
+details.csv,campaign,,Nom de la campagne.
+details.csv,random_greed,,Avidité des joueurs aléatoires.
+details.csv,game_type,,Type de parties : random_only ou with_smart.
+details.csv,kind,,"Ce que décrit la ligne : seat (une place), contract (un contrat) ou card (une carte grimoire)."
+details.csv,item,,"La place (0 à N-1), le nom du contrat ou le nom de la carte."
+details.csv,occurrences,"M1, M2",Places : parties terminées. Contrats : mages qui ont tenu ce contrat dans une partie terminée. Cartes : exemplaires distribués.
+details.csv,wins,"M1, M2",Places et contrats : parties terminées gagnées par un mage tenant l'élément.
+details.csv,points_mean,M2,Contrats : points moyens marqués par un mage tenant ce contrat.
+details.csv,points_sd,M2,Contrats : écart-type des points marqués par un mage tenant ce contrat.
+details.csv,schemed,M9,Cartes : nombre de fois où la carte a été manigancée.
+details.csv,revealed,"M9, M10",Cartes : nombre de fois où la carte manigancée a été révélée plutôt que remise sous le grimoire.
+details.csv,failed,M10,"Cartes : sorts révélés sans effet, faute de cible."
+details.csv,dead_turns_leading_mean,M13,"Cartes : tours passés en main sans être manigancée, par exemplaire et par partie, quand le détenteur est seul en tête des points (moyenne)."
+details.csv,dead_turns_leading_sd,M13,Cartes : écart-type de dead_turns_leading_mean.
+details.csv,dead_turns_trailing_mean,M13,"Cartes : tours passés en main sans être manigancée, par exemplaire et par partie, quand le détenteur n'est pas seul en tête des points (moyenne)."
+details.csv,dead_turns_trailing_sd,M13,Cartes : écart-type de dead_turns_trailing_mean.
