@@ -81,9 +81,36 @@ TEST_CASE("questions: options in the order of the game, yes first") {
 	p.receive_card(make_card("EUPHORIA"));
 	p.receive_card(make_card("ETHER"));
 	decision d{g, p, 0, g.players[0]->get_controller().rng()};
+	p.cards_in_hand.cards[0]->set_id(7);
 	CHECK(questions::scheme_card(d).options
-	      == json::array({{{"hand", 0}, {"card", "EUPHORIA"}}, {{"hand", 1}, {"card", "ETHER"}}}));
+	      == json::array({{{"hand", 0}, {"card", {{"id", 7}, {"name", "EUPHORIA"}}}},
+	                      {{"hand", 1}, {"card", {{"id", -1}, {"name", "ETHER"}}}}}));
 	CHECK(questions::reveal_more(d).options == json::array({"reveal", "stop"}));
 	CHECK(questions::ether_leak_target(d, {}, 2).options == json::array({"stop"}));
 	CHECK(questions::any_faction(2, {RED, BLUE}).options == json::array({"RED", "BLUE"}));
+}
+
+TEST_CASE("every grimory card of a game has its own id") {
+	game g(21, 3);
+	std::vector<std::unique_ptr<controller>> seats;
+	for (int i = 0; i < 3; ++i) seats.push_back(std::make_unique<random_player>(10));
+	game_files files;
+	files.deck_paths = {"decks/all_spells.json"};
+	files.contracts_path = "contracts/mixed.json";
+	prepare_game(g, std::move(seats), files);
+	std::set<long> ids;
+	size_t cards = 0;
+	json state = state_codec::state(g);
+	for (const json& seat : state["seats"]) {
+		for (const char* zone : {"hand", "grimory"}) {
+			for (const json& card : seat[zone]) {
+				ids.insert(card["id"].get<long>());
+				cards++;
+			}
+		}
+	}
+	CHECK(cards > 0);
+	CHECK(ids.size() == cards);
+	CHECK(*ids.begin() == 0);
+	CHECK(*ids.rbegin() == static_cast<long>(cards) - 1);
 }

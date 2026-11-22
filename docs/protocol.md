@@ -50,13 +50,18 @@ n'apparaît dans les messages.
   carte, jamais dans un choix.
 - **Événements** : chaque carte événement a un `id` unique et stable pour
   toute la partie. Les branches d'une propagande ET / OU n'ont pas d'`id`.
+- **Cartes grimoire** : chaque carte grimoire a aussi un `id` unique et
+  stable, de `0` à `n-1` (attribués avant le mélange des grimoires, siège
+  après siège). Les `id` des cartes grimoire et ceux des événements sont
+  deux numérotations séparées.
 - **Positions dans les zones** : index à partir de 0.
   - Présent : de la première carte révélée à la dernière.
   - Futur et grimoires : `0` est le dessus de la pile.
   - Passé, Oubli, Cosmos : dans l'ordre d'arrivée.
   - Main et cartes manigancées : dans l'ordre de la zone. Jouer une carte de
     la main met la dernière carte à sa place : l'ordre de la main peut
-    changer, `state` donne toujours l'ordre exact.
+    changer. Suivez les cartes par leur `id` ; `state` donne toujours l'ordre
+    exact.
 
 ### Événement
 
@@ -80,8 +85,14 @@ Les clés reprennent celles des fichiers `events/*.json` :
 
 ### Carte grimoire
 
-Une carte grimoire est représentée par son nom, comme dans `decks/*.json` :
-`"ETHER"`, `"EUPHORIA"`, etc.
+```json
+{"id":12,"name":"EUPHORIA"}
+```
+
+`name` est le nom de la carte dans `decks/*.json` : `"ETHER"`, `"EUPHORIA"`,
+etc. Dans les messages, un champ `card` contient toujours cet objet. Le
+champ `spell` du `context` d'une question donne seulement le nom du sort qui
+la pose.
 
 ### Contrat
 
@@ -174,10 +185,10 @@ s'il en faut, sont gérés par la couche Godot.
 | `question`          | Quand                                             | `context`                                      | `options`                                                |
 |---------------------|---------------------------------------------------|------------------------------------------------|----------------------------------------------------------|
 | `reveal_more`       | phase de Révélation, au mage dont c'est le tour   | `{"stealth":s,"max_stealth":m}`                | `["reveal","stop"]`                                      |
-| `scheme_card`       | phase de Manigances, main non vide                | —                                              | `[{"hand":i,"card":"EUPHORIA"}, …]`                      |
+| `scheme_card`       | phase de Manigances, main non vide                | —                                              | `[{"hand":i,"card":{"id":…,"name":…}}, …]`               |
 | `next_shenanigan`   | phase de Sortilèges, plusieurs cartes manigancées | —                                              | `[{"prepared":i,"card":…}, …]`                           |
 | `reveal_shenanigan` | phase de Sortilèges, pour chaque carte manigancée | `{"card":…}`                                   | `["reveal","bury"]` (bury : sous le grimoire)            |
-| `ether_to_spend`    | un sort révélé                                    | `{"spell":…}`                                  | `[0,1,…,éther disponible]`                               |
+| `ether_to_spend`    | un sort révélé                                    | `{"card":…}` (le sort)                         | `[0,1,…,éther disponible]`                               |
 | `propaganda_target` | Euphorie / Neurasthénie                           | `{"spell":…,"modification":m}`                 | `[{"present":i,"event":…}, …]`                           |
 | `opponent_target`   | Trou de mémoire                                   | `{"spell":"MEMORY_LAPSE"}`                     | `[{"seat":k}, …]`                                        |
 | `cosmos_card`       | Renverser l'entropie, une fois par carte reprise  | `{"spell":"ENTROPY_REVERSAL","remaining":r}`   | `[{"cosmos":i,"card":…}, …]`                             |
@@ -243,15 +254,15 @@ Lors d'un rollback, les `shenanigan_returned` viennent avant `rollback`.
 |-----------------------|----------------------------------------------------------------|-----------------------------|
 | `shenanigan_buried`   | `seat`, `card` (placée sous le grimoire), `grimory_size`       | `card` : des autres         |
 | `shenanigan_revealed` | `seat`, `card` (elle se résout ensuite)                        | —                           |
-| `ether_stored`        | `seat`, `ether` (total dans le repaire)                        | —                           |
-| `ether_spent`         | `seat`, `amount` (vers le Cosmos), `ether` (restant)           | —                           |
+| `ether_stored`        | `seat`, `card`, `ether` (total dans le repaire)                | —                           |
+| `ether_spent`         | `seat`, `amount`, `cards` (les éthers partis au Cosmos), `ether` (restant) | —               |
 | `spell_failed`        | `seat`, `card` (aucune cible : pas d'éther dépensé)            | —                           |
 | `spell_discarded`     | `seat`, `card` (le sort part dans le Cosmos), `cosmos_size`    | —                           |
 | `choice_cancelled`    | `immune` (siège), `by` (siège), `charges_left`                 | —                           |
 | `propaganda_modified` | `present`, `modification`, `event` (après modification)        | —                           |
-| `memory_lapse`        | `from`, `to` (la carte passe dans la main de `to`)             | —                           |
+| `memory_lapse`        | `from`, `to`, `card` (elle passe dans la main de `to`)         | —                           |
 | `cosmos_taken`        | `seat`, `card` (du Cosmos vers la main)                        | —                           |
-| `ether_leaked`        | `seat` (qui perd l'éther, vers le Cosmos), `by`, `ether` (restant) | —                       |
+| `ether_leaked`        | `seat` (qui perd l'éther), `by`, `card` (l'éther, vers le Cosmos), `ether` (restant) | —     |
 | `immunity_gained`     | `seat`, `gained`, `charges` (total)                            | —                           |
 | `future_read`         | `seat`, `events` (dessus du Futur d'abord)                     | `events` : des autres       |
 | `event_skipped`       | `event` (du dessus du Futur vers le Passé), `future_size`      | —                           |
@@ -290,13 +301,14 @@ Une élection produit `election`, puis son `event_resolved`.
   "future":   [ <événement>, … ],
   "past":     [ <événement>, … ],
   "oblivion": [ <événement>, … ],
-  "cosmos":   ["EUPHORIA", "ETHER", …],
+  "cosmos":   [{"id": 4, "name": "EUPHORIA"}, …],
   "contracts_left": 3,
   "seats": [
     {"seat": 0, "controller": {"strategy": "REMOTE", "greed": 0}, "deck": "implemented",
      "contract": <contrat>, "score": 2,
-     "hand": ["ETHER", …], "hand_limit": 4, "prepared": ["EUPHORIA"],
-     "ether": 1, "immunity": 0, "grimory": ["ETHER", …], "known_future": [17, 52]},
+     "hand": [{"id": 2, "name": "ETHER"}, …], "hand_limit": 4,
+     "prepared": [{"id": 7, "name": "EUPHORIA"}], "ether": [{"id": 0, "name": "ETHER"}],
+     "immunity": 0, "grimory": [<carte>, …], "known_future": [17, 52]},
     …
   ]
 }
@@ -305,6 +317,10 @@ Une élection produit `election`, puis son `event_resolved`.
 - `future` est dans l'ordre réel de la pile, dessus d'abord.
 - `grimory` est dans l'ordre de pioche, dessus d'abord.
 - `prepared` : les cartes manigancées pas encore traitées ce tour.
+- `ether` : les éthers posés dans le repaire.
+- Une carte qui se résout (entre `shenanigan_revealed` et sa destination)
+  n'est dans aucune zone. À la fin de chaque tour, chaque carte grimoire est
+  dans exactement une zone.
 - `known_future` liste les `id` des cartes du Futur que ce mage a vues avec
   Lecture, dessus d'abord. Ce sont les seules cartes du Futur qu'un bot
   honnête peut utiliser.
@@ -316,19 +332,19 @@ Les `state` sont omis.
 
 ```
 → {"type":"game_start","protocol":1,"seed":1234,"seats":3,"max_stealth":21,"hand_size":4,"popularity":{"RED":0,"YELLOW":0,"BLUE":0},"future":[…]}
-→ {"type":"seat_setup","seat":0,"controller":{"strategy":"REMOTE","greed":0},"contract":{…},"deck":"implemented","hand":["ETHER","EUPHORIA","ETHER","MEMORY_LAPSE"],"grimory":[…]}
+→ {"type":"seat_setup","seat":0,"controller":{"strategy":"REMOTE","greed":0},"contract":{…},"deck":"implemented","hand":[{"id":5,"name":"ETHER"},{"id":2,"name":"EUPHORIA"},{"id":9,"name":"ETHER"},{"id":0,"name":"MEMORY_LAPSE"}],"grimory":[…]}
 → {"type":"seat_setup","seat":1, …}
 → {"type":"seat_setup","seat":2,"controller":{"strategy":"SMART","greed":10}, …}
 → {"type":"turn_start","turn":0,"current":0,"future_size":128}
 → {"type":"phase","name":"schemes"}
-→ {"type":"ask","id":0,"seat":0,"question":"scheme_card","context":{},"options":[{"hand":0,"card":"ETHER"}, …],"state":{…}}
+→ {"type":"ask","id":0,"seat":0,"question":"scheme_card","context":{},"options":[{"hand":0,"card":{"id":5,"name":"ETHER"}}, …],"state":{…}}
 ← {"seat":0,"id":0,"choice":1}
-→ {"type":"card_schemed","seat":0,"card":"EUPHORIA"}
+→ {"type":"card_schemed","seat":0,"card":{"id":2,"name":"EUPHORIA"}}
 → {"type":"ask","id":1,"seat":1,"question":"scheme_card", …}
 ← {"seat":1,"id":1,"choice":0}
-→ {"type":"card_schemed","seat":1,"card":"ETHER"}
+→ {"type":"card_schemed","seat":1,"card":{"id":21,"name":"ETHER"}}
 → {"type":"decided","id":2,"seat":2,"question":"scheme_card","context":{},"options":[…],"choice":3}
-→ {"type":"card_schemed","seat":2,"card":"READING"}
+→ {"type":"card_schemed","seat":2,"card":{"id":38,"name":"READING"}}
 → {"type":"phase","name":"reveal"}
 → {"type":"ask","id":3,"seat":0,"question":"reveal_more","context":{"stealth":0,"max_stealth":21},"options":["reveal","stop"],"state":{…}}
 ← {"seat":0,"id":3,"choice":0}

@@ -17,3 +17,9 @@ void grimory::shuffle(std::mt19937& rng){
 void grimory::put_at_bottom(card_ptr card){
 	cards.push_front(std::move(card));
 }
+
+void grimory::number_cards(long& next_id){
+	for (card_ptr& card : cards) {
+		card->set_id(next_id++);
+	}
+}

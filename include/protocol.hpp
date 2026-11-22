@@ -26,6 +26,10 @@ std::string faction_name(faction f);
 faction faction_from_name(const std::string &name);
 std::string phase_name(game_phase p);
 
+// a grimory card: {"id": 12, "name": "EUPHORIA"}
+json card_json(const shenanigan &card);
+card_ptr card_from_json(const json &j);
+
 json contract_json(const contract &c);
 contract contract_from_json(const json &j);
 

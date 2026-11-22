@@ -65,23 +65,29 @@ json popularity_json(const std::vector<int> &popularity) {
 	return j;
 }
 
-json card_names_of(const hand &cards) {
-	json names = json::array();
+json cards_of(const hand &cards) {
+	json list = json::array();
 	for (size_t i = 0; i < cards.get_nb_cards(); ++i) {
-		names.push_back(cards.card_at(i).name());
+		list.push_back(card_json(cards.card_at(i)));
 	}
-	return names;
+	return list;
 }
 
-card_ptr card_named(const std::string &name) {
+} // namespace
+
+json card_json(const shenanigan &card) {
+	return json{{"id", card.get_id()}, {"name", card.name()}};
+}
+
+card_ptr card_from_json(const json &j) {
+	const std::string name = j.at("name").get<std::string>();
 	card_ptr card = make_card(name);
 	if (!card) {
 		throw std::runtime_error("unknown grimory card: " + name);
 	}
+	card->set_id(j.at("id").get<long>());
 	return card;
 }
-
-} // namespace
 
 json contract_json(const contract &c) {
 	json factions = json::array();
@@ -239,7 +245,7 @@ json state_codec::state(const game &g) {
 	s["oblivion"] = events_json(g.oblivion);
 	json cosmos = json::array();
 	for (size_t i = 0; i < g.cosmos_cards.size(); ++i) {
-		cosmos.push_back(g.cosmos_cards.card_at(i).name());
+		cosmos.push_back(card_json(g.cosmos_cards.card_at(i)));
 	}
 	s["cosmos"] = cosmos;
 	s["contracts_left"] = g.contract_pile.size();
@@ -249,11 +255,15 @@ json state_codec::state(const game &g) {
 		const player &p = *g.players[seat];
 		json grimory = json::array();
 		for (auto it = p.deck.cards.rbegin(); it != p.deck.cards.rend(); ++it) {
-			grimory.push_back((*it)->name()); // top first
+			grimory.push_back(card_json(**it)); // top first
 		}
 		json prepared = json::array();
 		for (size_t i = 0; i < p.cards_in_play.nb_prepared(); ++i) {
-			prepared.push_back(p.cards_in_play.prepared_at(i).name());
+			prepared.push_back(card_json(p.cards_in_play.prepared_at(i)));
+		}
+		json ether = json::array();
+		for (size_t i = 0; i < p.cards_in_play.available_ether(); ++i) {
+			ether.push_back(card_json(p.cards_in_play.ether_at(i)));
 		}
 		json known = json::array();
 		for (const event &e : g.future_events.show_events()) {
@@ -269,10 +279,10 @@ json state_codec::state(const game &g) {
 			{"deck", p.get_deck_name()},
 			{"contract", contract_json(p.get_contract())},
 			{"score", p.get_score()},
-			{"hand", card_names_of(p.get_hand())},
+			{"hand", cards_of(p.get_hand())},
 			{"hand_limit", p.cards_in_hand.cards_limit},
 			{"prepared", prepared},
-			{"ether", p.available_ether()},
+			{"ether", ether},
 			{"immunity", p.get_immunity()},
 			{"grimory", grimory},
 			{"known_future", known},
@@ -311,8 +321,8 @@ game state_codec::rebuild(const json &s) {
 	for (const json &e : s.at("oblivion")) {
 		g.oblivion.push_back(event_from_json(e));
 	}
-	for (const json &name : s.at("cosmos")) {
-		g.cosmos_cards.absorb(card_named(name.get<std::string>()));
+	for (const json &card : s.at("cosmos")) {
+		g.cosmos_cards.absorb(card_from_json(card));
 	}
 	// the undealt contracts are face down: only their number is known
 	g.contract_pile.resize(s.at("contracts_left").get<size_t>());
@@ -326,18 +336,18 @@ game state_codec::rebuild(const json &s) {
 		p.signed_contract = contract_from_json(seat.at("contract"));
 		p.points = seat.at("score").get<int>();
 		p.cards_in_hand.cards_limit = seat.at("hand_limit").get<size_t>();
-		for (const json &name : seat.at("hand")) {
-			p.cards_in_hand.add_card(card_named(name.get<std::string>()));
+		for (const json &card : seat.at("hand")) {
+			p.cards_in_hand.add_card(card_from_json(card));
 		}
-		for (const json &name : seat.at("prepared")) {
-			p.cards_in_play.prepare_shenanigan(card_named(name.get<std::string>()));
+		for (const json &card : seat.at("prepared")) {
+			p.cards_in_play.prepare_shenanigan(card_from_json(card));
 		}
-		for (unsigned i = 0; i < seat.at("ether").get<unsigned>(); ++i) {
-			p.cards_in_play.store_ether(card_named("ETHER"));
+		for (const json &card : seat.at("ether")) {
+			p.cards_in_play.store_ether(card_from_json(card));
 		}
 		p.immunity_charges = seat.at("immunity").get<unsigned>();
-		for (const json &name : seat.at("grimory")) { // top first
-			p.deck.cards.push_front(card_named(name.get<std::string>()));
+		for (const json &card : seat.at("grimory")) { // top first
+			p.deck.cards.push_front(card_from_json(card));
 		}
 		for (const json &id : seat.at("known_future")) {
 			for (const event &e : g.future_events.future) {
@@ -365,7 +375,7 @@ question scheme_card(const decision &d) {
 	question q{"scheme_card"};
 	const hand &cards = d.self.get_hand();
 	for (size_t i = 0; i < cards.get_nb_cards(); ++i) {
-		q.options.push_back({{"hand", i}, {"card", cards.card_at(i).name()}});
+		q.options.push_back({{"hand", i}, {"card", card_json(cards.card_at(i))}});
 	}
 	return q;
 }
@@ -374,17 +384,17 @@ question next_shenanigan(const decision &d) {
 	question q{"next_shenanigan"};
 	const lair &schemed = d.self.get_lair();
 	for (size_t i = 0; i < schemed.nb_prepared(); ++i) {
-		q.options.push_back({{"prepared", i}, {"card", schemed.prepared_at(i).name()}});
+		q.options.push_back({{"prepared", i}, {"card", card_json(schemed.prepared_at(i))}});
 	}
 	return q;
 }
 
 question reveal_shenanigan(const shenanigan &card) {
-	return {"reveal_shenanigan", {{"card", card.name()}}, json::array({"reveal", "bury"})};
+	return {"reveal_shenanigan", {{"card", card_json(card)}}, json::array({"reveal", "bury"})};
 }
 
 question ether_to_spend(const decision &d, const spell &s) {
-	question q{"ether_to_spend", {{"spell", s.name()}}};
+	question q{"ether_to_spend", {{"card", card_json(s)}}};
 	for (unsigned ether = 0; ether <= d.self.available_ether(); ++ether) {
 		q.options.push_back(ether);
 	}
@@ -414,7 +424,7 @@ question opponent_target(const std::vector<size_t> &seats) {
 question cosmos_card(const decision &d, unsigned remaining) {
 	question q{"cosmos_card", {{"spell", "ENTROPY_REVERSAL"}, {"remaining", remaining}}};
 	for (size_t i = 0; i < d.g.cosmos_cards.size(); ++i) {
-		q.options.push_back({{"cosmos", i}, {"card", d.g.cosmos_cards.card_at(i).name()}});
+		q.options.push_back({{"cosmos", i}, {"card", card_json(d.g.cosmos_cards.card_at(i))}});
 	}
 	return q;
 }
@@ -522,7 +532,7 @@ void protocol_announcer::rolled_back(game &g, turn_outcome cause, const std::vec
 }
 
 void protocol_announcer::shenanigan_returned(game &g, const player &p, const shenanigan &card) {
-	w.announce(g, {{"type", "shenanigan_returned"}, {"seat", g.seat_of(p)}, {"card", card.name()}});
+	w.announce(g, {{"type", "shenanigan_returned"}, {"seat", g.seat_of(p)}, {"card", card_json(card)}});
 }
 
 void protocol_announcer::propaganda_applied(game &g, faction f, int value) {
@@ -545,33 +555,49 @@ void protocol_announcer::election_resolved(game &g, const std::vector<int> &poin
 }
 
 void protocol_announcer::card_schemed(game &g, const player &p, const shenanigan &card) {
-	w.announce(g, {{"type", "card_schemed"}, {"seat", g.seat_of(p)}, {"card", card.name()}});
+	w.announce(g, {{"type", "card_schemed"}, {"seat", g.seat_of(p)}, {"card", card_json(card)}});
 }
 
 void protocol_announcer::shenanigan_buried(game &g, const player &p, const shenanigan &card) {
-	w.announce(g, {{"type", "shenanigan_buried"}, {"seat", g.seat_of(p)}, {"card", card.name()},
+	w.announce(g, {{"type", "shenanigan_buried"}, {"seat", g.seat_of(p)}, {"card", card_json(card)},
 	               {"grimory_size", p.grimory_size()}});
 }
 
 void protocol_announcer::card_revealed(game &g, const player &p, const shenanigan &card) {
-	w.announce(g, {{"type", "shenanigan_revealed"}, {"seat", g.seat_of(p)}, {"card", card.name()}});
+	w.announce(g, {{"type", "shenanigan_revealed"}, {"seat", g.seat_of(p)}, {"card", card_json(card)}});
 }
 
 void protocol_announcer::ether_stored(game &g, const player &p) {
-	w.announce(g, {{"type", "ether_stored"}, {"seat", g.seat_of(p)}, {"ether", p.available_ether()}});
+	const lair &l = p.get_lair();
+	w.announce(g, {{"type", "ether_stored"}, {"seat", g.seat_of(p)},
+	               {"card", card_json(l.ether_at(l.available_ether() - 1))},
+	               {"ether", p.available_ether()}});
+}
+
+namespace {
+
+// the last `count` cards that reached the cosmos
+json last_in_cosmos(const game &g, size_t count) {
+	json cards = json::array();
+	for (size_t i = g.cosmos_cards.size() - count; i < g.cosmos_cards.size(); ++i) {
+		cards.push_back(card_json(g.cosmos_cards.card_at(i)));
+	}
+	return cards;
+}
+
 }
 
 void protocol_announcer::ether_spent(game &g, const player &p, unsigned amount) {
 	w.announce(g, {{"type", "ether_spent"}, {"seat", g.seat_of(p)}, {"amount", amount},
-	               {"ether", p.available_ether()}});
+	               {"cards", last_in_cosmos(g, amount)}, {"ether", p.available_ether()}});
 }
 
 void protocol_announcer::spell_failed(game &g, const player &p, const shenanigan &card) {
-	w.announce(g, {{"type", "spell_failed"}, {"seat", g.seat_of(p)}, {"card", card.name()}});
+	w.announce(g, {{"type", "spell_failed"}, {"seat", g.seat_of(p)}, {"card", card_json(card)}});
 }
 
 void protocol_announcer::spell_discarded(game &g, const player &p, const shenanigan &card) {
-	w.announce(g, {{"type", "spell_discarded"}, {"seat", g.seat_of(p)}, {"card", card.name()},
+	w.announce(g, {{"type", "spell_discarded"}, {"seat", g.seat_of(p)}, {"card", card_json(card)},
 	               {"cosmos_size", g.cosmos_cards.size()}});
 }
 
@@ -582,16 +608,18 @@ void protocol_announcer::propaganda_modified(game &g, size_t position, int modif
 }
 
 void protocol_announcer::memory_lapse_received(game &g, const player &caster, const player &target) {
-	w.announce(g, {{"type", "memory_lapse"}, {"from", g.seat_of(caster)}, {"to", g.seat_of(target)}});
+	const hand &h = target.get_hand();
+	w.announce(g, {{"type", "memory_lapse"}, {"from", g.seat_of(caster)}, {"to", g.seat_of(target)},
+	               {"card", card_json(h.card_at(h.get_nb_cards() - 1))}});
 }
 
 void protocol_announcer::cosmos_card_taken(game &g, const player &p, const shenanigan &card) {
-	w.announce(g, {{"type", "cosmos_taken"}, {"seat", g.seat_of(p)}, {"card", card.name()}});
+	w.announce(g, {{"type", "cosmos_taken"}, {"seat", g.seat_of(p)}, {"card", card_json(card)}});
 }
 
 void protocol_announcer::ether_leaked(game &g, const player &caster, const player &target) {
 	w.announce(g, {{"type", "ether_leaked"}, {"seat", g.seat_of(target)}, {"by", g.seat_of(caster)},
-	               {"ether", target.available_ether()}});
+	               {"card", last_in_cosmos(g, 1).at(0)}, {"ether", target.available_ether()}});
 }
 
 void protocol_announcer::immunity_gained(game &g, const player &p, unsigned charges) {
@@ -625,7 +653,7 @@ void protocol_announcer::cards_drawn(game &g, const player &p, size_t count) {
 	json cards = json::array();
 	const hand &h = p.get_hand();
 	for (size_t i = h.get_nb_cards() - count; i < h.get_nb_cards(); ++i) {
-		cards.push_back(h.card_at(i).name());
+		cards.push_back(card_json(h.card_at(i)));
 	}
 	w.announce(g, {{"type", "cards_drawn"}, {"seat", g.seat_of(p)}, {"cards", cards},
 	               {"grimory_size", p.grimory_size()}});

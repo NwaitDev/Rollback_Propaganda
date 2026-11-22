@@ -126,10 +126,17 @@ public:
   virtual ~shenanigan() = default;
   virtual std::string name() const = 0;
 
+  // identity of this card in the game, given by game::setup() (-1 before)
+  inline long get_id() const { return id; }
+  inline void set_id(long new_id) { id = new_id; }
+
   // Applies the card once revealed by its owner. The card receives its own
   // ownership and moves itself where the rules send it (the owner's lair,
   // the cosmos, another mage's hand...).
   virtual void resolve(card_ptr self, game &g, player &owner) = 0;
+
+private:
+  long id = -1;
 };
 
 // Ether: kept face up in its owner's lair, then spent to strengthen spells.
@@ -164,6 +171,8 @@ public:
   void put_at_bottom(card_ptr card);
   inline bool is_empty() const { return cards.empty(); }
   inline size_t size() const { return cards.size(); }
+  // gives the ids next_id, next_id + 1... to the cards, bottom first
+  void number_cards(long &next_id);
 
 private:
   friend class state_codec;
@@ -196,6 +205,7 @@ public:
   void store_ether(card_ptr card);
   std::vector<card_ptr> spend_ether(unsigned amount);
   inline unsigned available_ether() const { return ether_pool.size(); }
+  inline const shenanigan &ether_at(size_t index) const { return *ether_pool.at(index); }
 
 private:
   friend class state_codec;
@@ -342,6 +352,8 @@ public:
   inline unsigned get_immunity() const { return immunity_charges; }
   inline void add_to_grimory(card_ptr card) { deck.put_at_bottom(std::move(card)); }
   void give_starting_deck(starting_deck d);
+  // gives an id to every card of the grimory (see grimory::number_cards)
+  inline void number_grimory(long &next_id) { deck.number_cards(next_id); }
   inline void set_hand_size(size_t size) { cards_in_hand.set_limit(size); }
   void setup(game &g);
 

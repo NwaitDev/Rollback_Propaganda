@@ -191,3 +191,42 @@ def test_server_errors(args, message):
     assert server.returncode == 1
     assert message in server.stderr
     assert server.stdout == ""
+
+
+def grimory_cards(state):
+    """Every grimory card of a state, by id, with where it is."""
+    where = {}
+    for seat in state["seats"]:
+        for zone in ("hand", "prepared", "ether", "grimory"):
+            for card in seat[zone]:
+                assert card["id"] not in where, f"card {card['id']} twice"
+                where[card["id"]] = (zone, seat["seat"])
+    for card in state["cosmos"]:
+        assert card["id"] not in where, f"card {card['id']} twice"
+        where[card["id"]] = ("cosmos", None)
+    return where
+
+
+def test_grimory_cards_keep_their_id(full_game):
+    """No card is ever duplicated; at the end of a turn every card is
+    somewhere; an announced card is where the announcement sends it."""
+    everything = set(grimory_cards(full_game[0]["state"]))
+    assert everything == set(range(len(everything)))
+    destination = {
+        "card_schemed": "prepared", "shenanigan_returned": "hand", "cosmos_taken": "hand",
+        "spell_discarded": "cosmos", "ether_stored": "ether", "shenanigan_buried": "grimory",
+    }
+    for m in full_game:
+        where = grimory_cards(m["state"])
+        assert set(where) <= everything
+        if m["type"] == "turn_end":
+            assert set(where) == everything
+        if m["type"] in destination:
+            assert where[m["card"]["id"]][0] == destination[m["type"]]
+        if m["type"] == "memory_lapse":
+            assert where[m["card"]["id"]] == ("hand", m["to"])
+        if m["type"] in ("ether_spent", "ether_leaked"):
+            cards = m["cards"] if m["type"] == "ether_spent" else [m["card"]]
+            assert all(where[c["id"]] == ("cosmos", None) for c in cards)
+        if m["type"] == "cards_drawn":
+            assert all(where[c["id"]] == ("hand", m["seat"]) for c in m["cards"])

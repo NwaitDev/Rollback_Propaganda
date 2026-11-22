@@ -26,6 +26,12 @@ void game::setup(){
 		p->sign_contract(contract_pile.back());
 		contract_pile.pop_back();
 	}
+	// every grimory card gets its own id, seat after seat, before the
+	// grimories are shuffled
+	long next_card_id = 0;
+	for (std::unique_ptr<player>& p : players) {
+		p->number_grimory(next_card_id);
+	}
 	for (std::unique_ptr<player>& p : players) {
 		p->setup(*this);
 	}

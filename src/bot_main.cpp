@@ -44,11 +44,11 @@ size_t answer(controller &c, const json &ask, size_t seat) {
 		return c.next_shenanigan(d);
 	}
 	if (q == "reveal_shenanigan") {
-		card_ptr card = make_card(context.at("card").get<std::string>());
+		card_ptr card = card_from_json(context.at("card"));
 		return c.reveal_shenanigan(d, *card) ? 0 : 1;
 	}
 	if (q == "ether_to_spend") {
-		card_ptr card = make_card(context.at("spell").get<std::string>());
+		card_ptr card = card_from_json(context.at("card"));
 		return c.ether_to_spend(d, dynamic_cast<const spell &>(*card)); // option i is i ether
 	}
 	if (q == "propaganda_target") {
