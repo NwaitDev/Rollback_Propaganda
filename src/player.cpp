@@ -2,7 +2,11 @@
 #include <stdexcept>
 #include <utility>
 
-player::player(stealth greed, strategy strat) : greed(greed), strat(strat) {}
+player::player(std::unique_ptr<controller> c) : ctrl(std::move(c)) {
+  if (!ctrl) {
+    throw std::logic_error("a mage needs a controller");
+  }
+}
 
 void player::sign_contract(const contract &c) { signed_contract = c; }
 
@@ -12,7 +16,6 @@ int player::get_score() const { return points; }
 
 const contract &player::get_contract() const { return signed_contract; }
 
-int player::get_greed() const { return greed; }
 
 void player::give_starting_deck(starting_deck d) {
   deck_name = d.name;
@@ -25,50 +28,6 @@ void player::setup(game &g) {
   deck.shuffle(g.rng());
   refill_hand();
 }
-
-event &player::spell_access(game &g, event_pile ep, size_t position) {
-  switch (ep) {
-  case PAST:
-    return g.past_events.past[position];
-  case PRESENT:
-    return g.present_events.present[position];
-  case FUTURE:
-    return g.future_events.future[position];
-  }
-  throw std::runtime_error("unknown event pile");
-}
-
-std::vector<event *> player::present_propaganda(game &g) {
-  std::vector<event *> propaganda;
-  for (size_t i = 0; i < g.present_events.show_events().size(); ++i) {
-    event &e = spell_access(g, PRESENT, i);
-    if (e.is_propaganda_card()) {
-      propaganda.push_back(&e);
-    }
-  }
-  return propaganda;
-}
-
-std::vector<player *> player::opponents_with_ether(game &g) {
-  std::vector<player *> targets;
-  for (player *p : opponents(g)) {
-    if (p->available_ether() > 0) {
-      targets.push_back(p);
-    }
-  }
-  return targets;
-}
-
-std::vector<player *> player::opponents(game &g) {
-  std::vector<player *> others;
-  for (std::unique_ptr<player> &p : g.get_players_ref()) {
-    if (p.get() != this) {
-      others.push_back(p.get());
-    }
-  }
-  return others;
-}
-
 
 // --- shenanigan phases -------------------------------------------------------
 
@@ -160,4 +119,102 @@ bool player::cancels_choice_by(game &g, const player &chooser) {
 
 void player::end_turn() {
   immunity_charges = 0; // immunity only lasts for the current turn
+}
+
+
+// --- decisions -----------------------------------------------------------------
+// Every answer of the controller is checked: a wrong answer is a bug of the
+// controller (the server checks the answers of remote players beforehand).
+
+decision player::decide(game &g) const {
+  return decision{g, *this, g.seat_of(*this), g.rng()};
+}
+
+bool player::wants_to_reveal_more(game &g) {
+  return ctrl->reveal_more(decide(g));
+}
+
+size_t player::choose_card_to_scheme(game &g) {
+  size_t index = ctrl->scheme_card(decide(g));
+  if (index >= cards_in_hand.get_nb_cards()) {
+    throw std::logic_error("a player chose a card out of their hand");
+  }
+  return index;
+}
+
+size_t player::choose_next_shenanigan(game &g) {
+  size_t index = ctrl->next_shenanigan(decide(g));
+  if (index >= cards_in_play.nb_prepared()) {
+    throw std::logic_error("a player chose a schemed card that does not exist");
+  }
+  return index;
+}
+
+bool player::wants_to_reveal(game &g, const shenanigan &card) {
+  return ctrl->reveal_shenanigan(decide(g), card);
+}
+
+unsigned player::choose_ether_to_spend(game &g, const spell &s) {
+  unsigned ether = ctrl->ether_to_spend(decide(g), s);
+  if (ether > available_ether()) {
+    throw std::logic_error("a player chose to spend more ether than available");
+  }
+  return ether;
+}
+
+event *player::choose_propaganda(game &g, int modification) {
+  std::vector<size_t> present = g.propaganda_in_present();
+  if (present.empty()) {
+    return nullptr;
+  }
+  size_t choice = ctrl->propaganda_target(decide(g), modification, present);
+  if (choice >= present.size()) {
+    throw std::logic_error("a player chose a propaganda that does not exist");
+  }
+  return &g.present_event_at(present[choice]);
+}
+
+player *player::choose_opponent(game &g) {
+  std::vector<size_t> seats = g.opponents_of(g.seat_of(*this));
+  if (seats.empty()) {
+    return nullptr;
+  }
+  size_t choice = ctrl->opponent_target(decide(g), seats);
+  if (choice >= seats.size()) {
+    throw std::logic_error("a player chose an opponent that does not exist");
+  }
+  return g.get_players_ref()[seats[choice]].get();
+}
+
+size_t player::choose_cosmos_card(game &g) {
+  size_t choice = ctrl->cosmos_card(decide(g));
+  if (choice >= g.cosmos_cards.size()) {
+    throw std::logic_error("a player chose a card out of the cosmos");
+  }
+  return choice;
+}
+
+player *player::choose_ether_to_leak(game &g) {
+  std::vector<size_t> seats = g.opponents_with_ether(g.seat_of(*this));
+  size_t choice = ctrl->ether_leak_target(decide(g), seats);
+  if (choice > seats.size()) {
+    throw std::logic_error("a player chose an invalid ether to leak");
+  }
+  return (choice == seats.size()) ? nullptr : g.get_players_ref()[seats[choice]].get();
+}
+
+size_t player::choose_divergence_branch(game &g, const event &divergence) {
+  size_t branch = ctrl->divergence_branch(decide(g), divergence);
+  if (branch > 1) {
+    throw std::logic_error("a player chose an invalid branch of a divergence");
+  }
+  return branch;
+}
+
+faction player::choose_faction_for_any(game &g, int value, const std::vector<faction> &allowed) {
+  size_t choice = ctrl->any_faction(decide(g), value, allowed);
+  if (choice >= allowed.size()) {
+    throw std::logic_error("a player chose a forbidden faction for an ANY propaganda");
+  }
+  return allowed[choice];
 }

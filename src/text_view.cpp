@@ -6,16 +6,9 @@ std::string describe(const player &p) {
   const contract &c = p.get_contract();
   std::string text = "contract: " + (c.name.empty() ? std::string("none") : c.name);
   text += " / strategy: ";
-  switch (p.get_strategy()) {
-  case RANDOM:
-    text += "RANDOM";
-    break;
-  case SMART:
-    text += "SMART";
-    break;
-  }
+  text += p.get_controller().strategy_name();
   text += " / deck: " + p.get_deck_name();
-  text += " / greed: " + std::to_string(p.get_greed())
+  text += " / greed: " + std::to_string(p.get_controller().get_greed())
           + " (score :" + std::to_string(p.get_score()) + ")";
   text += " / grimory: " + std::to_string(p.grimory_size())
           + ", hand: " + std::to_string(p.get_hand().get_nb_cards());

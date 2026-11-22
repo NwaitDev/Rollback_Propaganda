@@ -180,12 +180,7 @@ protected:
 
 private:
 	static bool no_opponent_ether(game &g, player &caster) {
-		for (player *p : caster.opponents(g)) {
-			if (p->available_ether() > 0) {
-				return false;
-			}
-		}
-		return true;
+		return g.opponents_with_ether(g.seat_of(caster)).empty();
 	}
 };
 

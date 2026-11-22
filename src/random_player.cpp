@@ -1,67 +1,53 @@
 #include "../include/game_concepts.hpp"
 #include <vector>
 
-random_player::random_player(stealth greed) : player(greed, RANDOM) {}
-
 // --- decisions: every choice is made at random ------------------------------
 
 // the only decision that is not random: reveals until the stealth reaches
 // the player's greed
-bool random_player::wants_to_reveal_more(game &g) {
-  return g.present_events.get_stealth() < get_greed();
+bool random_player::reveal_more(const decision &d) {
+  return d.g.present_events.get_stealth() < greed;
 }
 
-size_t random_player::choose_card_to_scheme(game &g) {
-  return g.random_below(cards_in_hand.get_nb_cards());
+size_t random_player::scheme_card(const decision &d) {
+  return d.random_below(d.self.get_hand().get_nb_cards());
 }
 
-size_t random_player::choose_next_shenanigan(game &g) {
-  return g.random_below(cards_in_play.nb_prepared());
+size_t random_player::next_shenanigan(const decision &d) {
+  return d.random_below(d.self.get_lair().nb_prepared());
 }
 
-bool random_player::wants_to_reveal(game &g, const shenanigan &card) {
-  return g.random_below(2) == 0;
+bool random_player::reveal_shenanigan(const decision &d, const shenanigan &card) {
+  return d.random_below(2) == 0;
 }
 
-unsigned random_player::choose_ether_to_spend(game &g, const spell &s) {
-  return g.random_below(available_ether() + 1);
+unsigned random_player::ether_to_spend(const decision &d, const spell &s) {
+  return d.random_below(d.self.available_ether() + 1);
 }
 
-event *random_player::choose_propaganda(game &g, int modification) {
-  std::vector<event *> candidates = present_propaganda(g);
-  if (candidates.empty()) {
-    return nullptr;
-  }
-  return candidates[g.random_below(candidates.size())];
+size_t random_player::propaganda_target(const decision &d, int modification,
+                                        const std::vector<size_t> &present) {
+  return d.random_below(present.size());
 }
 
-player *random_player::choose_opponent(game &g) {
-  std::vector<player *> candidates = opponents(g);
-  if (candidates.empty()) {
-    return nullptr;
-  }
-  return candidates[g.random_below(candidates.size())];
+size_t random_player::opponent_target(const decision &d, const std::vector<size_t> &seats) {
+  return d.random_below(seats.size());
 }
 
-size_t random_player::choose_cosmos_card(game &g) {
-  return g.random_below(g.cosmos_cards.size());
+size_t random_player::cosmos_card(const decision &d) {
+  return d.random_below(d.g.cosmos_cards.size());
 }
 
 // leaks an ether of a random opponent, or stops at random
-player *random_player::choose_ether_to_leak(game &g) {
-  std::vector<player *> candidates = opponents_with_ether(g);
-  size_t choice = g.random_below(candidates.size() + 1);
-  if (choice == candidates.size()) {
-    return nullptr;
-  }
-  return candidates[choice];
+size_t random_player::ether_leak_target(const decision &d, const std::vector<size_t> &seats) {
+  return d.random_below(seats.size() + 1);
 }
 
-size_t random_player::choose_divergence_branch(game &g, const event &divergence) {
-  return g.random_below(2);
+size_t random_player::divergence_branch(const decision &d, const event &divergence) {
+  return d.random_below(2);
 }
 
-faction random_player::choose_faction_for_any(game &g, int value,
-                                              const std::vector<faction> &allowed) {
-  return allowed[g.random_below(allowed.size())];
+size_t random_player::any_faction(const decision &d, int value,
+                                  const std::vector<faction> &allowed) {
+  return d.random_below(allowed.size());
 }

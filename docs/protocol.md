@@ -92,9 +92,18 @@ Une carte grimoire est représentée par son nom, comme dans `decks/*.json` :
 - `seat` : le mage qui doit décider.
 - `question` : un des noms du catalogue ci-dessous.
 - `context` : ce qui motive la question.
-- `options` : liste **non vide** des choix permis. Le moteur ne pose pas de
-  question quand il n'y a qu'un choix possible (sauf mention contraire dans
-  le catalogue) : il l'applique directement.
+- `options` : liste **non vide** des choix permis. Le moteur pose la
+  question **même quand il n'y a qu'une option**, parce que les stratégies
+  de la simulation tirent au hasard même dans ce cas : c'est ce qui garantit
+  qu'une partie jouée via le moteur est identique à la même partie jouée par
+  `./simulation`. La couche Godot peut répondre seule à ces questions sans
+  déranger le joueur humain.
+- Exceptions : `next_shenanigan` n'est posée que s'il y a au moins deux
+  cartes manigancées. `propaganda_target` et `opponent_target` ne sont pas
+  posées quand il n'y a aucune cible : le sort échoue (`spell_failed`).
+  `ether_leak_target` est posée pour chacun des 1 + éther dépensé éthers
+  que le sort peut défausser, jusqu'à un `"stop"`, même quand `"stop"` est
+  la seule option restante.
 - `state` : l'état complet de la partie (section 5). On peut donc répondre
   sans avoir suivi les messages précédents.
 

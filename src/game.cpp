@@ -78,8 +78,39 @@ void game::add_event(const event& e){
 	future_events.put_on_top(card);
 }
 
-void game::add_player(std::unique_ptr<player> p){
-	players.push_back(std::move(p));
+void game::add_player(std::unique_ptr<controller> c){
+	players.push_back(std::make_unique<player>(std::move(c)));
+}
+
+std::vector<size_t> game::opponents_of(size_t seat) const{
+	std::vector<size_t> others;
+	for (size_t i = 0; i < players.size(); ++i) {
+		if (i != seat) {
+			others.push_back(i);
+		}
+	}
+	return others;
+}
+
+std::vector<size_t> game::opponents_with_ether(size_t seat) const{
+	std::vector<size_t> targets;
+	for (size_t i : opponents_of(seat)) {
+		if (players[i]->available_ether() > 0) {
+			targets.push_back(i);
+		}
+	}
+	return targets;
+}
+
+std::vector<size_t> game::propaganda_in_present() const{
+	std::vector<size_t> positions;
+	const std::deque<event>& present = present_events.show_events();
+	for (size_t i = 0; i < present.size(); ++i) {
+		if (present[i].is_propaganda_card()) {
+			positions.push_back(i);
+		}
+	}
+	return positions;
 }
 
 void game::shuffle(){

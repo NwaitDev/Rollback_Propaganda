@@ -8,8 +8,6 @@
 // changes the popularities is made the same way: it projects the outcome of
 // each option and keeps the one its contract rates best (see contract::rate).
 
-smart_player::smart_player(stealth greed) : player(greed, SMART){}
-
 namespace {
 
 // The grimory cards from the most to the least useful (ethers apart).
@@ -136,24 +134,29 @@ std::vector<int> best_application(const contract& c, const std::vector<int>& pop
 	return best;
 }
 
-// What the resolution of the present would bring if `target` received
-// `modification`: the points the contract would earn at the elections of the
-// present, and the popularities at the end. Approximation: every choice
-// (OR branch, ANY faction) is assumed to be made in favour of the contract,
-// although the mage whose turn it is makes them.
+// What the resolution of the present would bring if the event at position
+// `target` received `modification` (no_target: none): the points the
+// contract would earn at the elections of the present, and the popularities
+// at the end. Approximation: every choice (OR branch, ANY faction) is
+// assumed to be made in favour of the contract, although the mage whose
+// turn it is makes them.
+const size_t no_target = static_cast<size_t>(-1);
+
 struct projection {
 	int earned = 0;
 	std::vector<int> popularity;
 };
 
-projection project_present(game& g, const contract& c, const event* target, int modification){
+projection project_present(const game& g, const contract& c, size_t target, int modification){
 	projection p;
-	p.popularity = g.get_scores_ref();
-	for (const event& e : g.present_events.show_events()) {
+	p.popularity = g.get_popularity();
+	const std::deque<event>& present = g.present_events.show_events();
+	for (size_t i = 0; i < present.size(); ++i) {
+		const event& e = present[i];
 		if (e.get_kind() == ELECTION) {
 			p.earned += c.points_earned(p.popularity);
 		} else if (e.is_propaganda_card()) {
-			p.popularity = best_application(c, p.popularity, e, (&e == target) ? modification : 0);
+			p.popularity = best_application(c, p.popularity, e, (i == target) ? modification : 0);
 		}
 	}
 	return p;
@@ -170,6 +173,22 @@ long coarse_value(const contract& c, const projection& p){
 	return p.earned * 2L + ((c.points_earned(p.popularity) > 0) ? 1 : 0);
 }
 
+// Index in `present` (positions of the propagandas) of the one whose
+// modification rates best; the first one on a tie.
+size_t best_propaganda(const decision& d, int modification, const std::vector<size_t>& present){
+	const contract& c = d.self.get_contract();
+	size_t best = 0;
+	long best_value = 0;
+	for (size_t i = 0; i < present.size(); ++i) {
+		long v = value(c, project_present(d.g, c, present[i], modification));
+		if (i == 0 || v > best_value) {
+			best = i;
+			best_value = v;
+		}
+	}
+	return best;
+}
+
 }
 
 
@@ -177,15 +196,15 @@ long coarse_value(const contract& c, const projection& p){
 
 // Reveals like a greedy player, but stops before a card it knows (seen with
 // Reading) would be an explosion or push the stealth over the limit.
-bool smart_player::wants_to_reveal_more(game& g){
-	stealth current = g.present_events.get_stealth();
-	if (current >= get_greed()) {
+bool smart_player::reveal_more(const decision& d){
+	stealth current = d.g.present_events.get_stealth();
+	if (current >= greed) {
 		return false;
 	}
-	const event* next = known_event(g.future_events.top().get_id());
+	const event* next = d.self.known_event(d.g.future_events.top().get_id());
 	if (next != nullptr) {
 		if (next->get_kind() == EXPLOSION) return false;
-		if (current + next->get_stealth() > g.get_max_stealth()) return false;
+		if (current + next->get_stealth() > d.g.get_max_stealth()) return false;
 	}
 	return true;
 }
@@ -193,20 +212,22 @@ bool smart_player::wants_to_reveal_more(game& g){
 
 // --- shenanigans -----------------------------------------------------------------
 
-size_t smart_player::choose_card_to_scheme(game& g){
+size_t smart_player::scheme_card(const decision& d){
 	std::vector<std::string> names;
-	for (size_t i = 0; i < cards_in_hand.get_nb_cards(); ++i) {
-		names.push_back(cards_in_hand.card_at(i).name());
+	const hand& cards = d.self.get_hand();
+	for (size_t i = 0; i < cards.get_nb_cards(); ++i) {
+		names.push_back(cards.card_at(i).name());
 	}
-	return most_useful(names, available_ether());
+	return most_useful(names, d.self.available_ether());
 }
 
 // ethers first (so that later spells can spend them), then immunity (to
 // protect the rest of the turn), then the other cards
-size_t smart_player::choose_next_shenanigan(game& g){
+size_t smart_player::next_shenanigan(const decision& d){
+	const lair& schemed = d.self.get_lair();
 	for (const char* wanted : {"ETHER", "IMMUNITY"}) {
-		for (size_t i = 0; i < cards_in_play.nb_prepared(); ++i) {
-			if (cards_in_play.prepared_at(i).name() == wanted) {
+		for (size_t i = 0; i < schemed.nb_prepared(); ++i) {
+			if (schemed.prepared_at(i).name() == wanted) {
 				return i;
 			}
 		}
@@ -216,22 +237,25 @@ size_t smart_player::choose_next_shenanigan(game& g){
 
 // Reveals a card only if it is useful right now; otherwise it goes back
 // under the grimory, to be drawn again later.
-bool smart_player::wants_to_reveal(game& g, const shenanigan& card){
+bool smart_player::reveal_shenanigan(const decision& d, const shenanigan& card){
 	const std::string name = card.name();
 	if (name == "EUPHORIA" || name == "NEURASTHENIA") {
 		// useful if the weakest version of the spell improves the outcome
-		const contract& c = get_contract();
+		const contract& c = d.self.get_contract();
 		int modification = (name == "EUPHORIA") ? 1 : -1;
-		event* target = choose_propaganda(g, modification);
-		return target != nullptr
-			&& value(c, project_present(g, c, target, modification))
-			   > value(c, project_present(g, c, nullptr, 0));
+		std::vector<size_t> present = d.g.propaganda_in_present();
+		if (present.empty()) {
+			return false;
+		}
+		size_t target = present[best_propaganda(d, modification, present)];
+		return value(c, project_present(d.g, c, target, modification))
+		       > value(c, project_present(d.g, c, no_target, 0));
 	}
 	if (name == "IMMUNITY") {
-		return &g.get_current_player() == this;
+		return d.g.current_player == d.seat;
 	}
 	if (name == "ETHER_LEAK") {
-		return !opponents_with_ether(g).empty();
+		return !d.g.opponents_with_ether(d.seat).empty();
 	}
 	return true; // ETHER, MEMORY_LAPSE and the other spells
 }
@@ -241,20 +265,22 @@ bool smart_player::wants_to_reveal(game& g, const shenanigan& card){
 // afterwards); none if spending ether secures nothing more.
 // Ether leak: enough to leak every ether of the opponents.
 // Other spells: none.
-unsigned smart_player::choose_ether_to_spend(game& g, const spell& s){
+unsigned smart_player::ether_to_spend(const decision& d, const spell& s){
 	const std::string name = s.name();
+	unsigned available = d.self.available_ether();
 	if (name == "EUPHORIA" || name == "NEURASTHENIA") {
-		const contract& c = get_contract();
+		const contract& c = d.self.get_contract();
 		int sign = (name == "EUPHORIA") ? 1 : -1;
+		std::vector<size_t> present = d.g.propaganda_in_present();
+		if (present.empty()) {
+			return 0;
+		}
 		unsigned best_ether = 0;
 		long best = 0;
-		for (unsigned ether = 0; ether <= available_ether(); ++ether) {
+		for (unsigned ether = 0; ether <= available; ++ether) {
 			int modification = sign * (1 + static_cast<int>(ether));
-			event* target = choose_propaganda(g, modification);
-			if (target == nullptr) {
-				return 0;
-			}
-			long secured = coarse_value(c, project_present(g, c, target, modification));
+			size_t target = present[best_propaganda(d, modification, present)];
+			long secured = coarse_value(c, project_present(d.g, c, target, modification));
 			if (ether == 0 || secured > best) {
 				best = secured;
 				best_ether = ether;
@@ -264,64 +290,54 @@ unsigned smart_player::choose_ether_to_spend(game& g, const spell& s){
 	}
 	if (name == "ETHER_LEAK") {
 		unsigned opponents_ether = 0;
-		for (player* p : opponents_with_ether(g)) {
-			opponents_ether += p->available_ether();
+		for (size_t seat : d.g.opponents_with_ether(d.seat)) {
+			opponents_ether += d.g.player_at(seat).available_ether();
 		}
 		if (opponents_ether == 0) {
 			return 0;
 		}
-		return std::min(available_ether(), opponents_ether - 1);
+		return std::min(available, opponents_ether - 1);
 	}
 	return 0;
 }
 
 // The propaganda of the present whose modification rates best.
-event* smart_player::choose_propaganda(game& g, int modification){
-	const contract& c = get_contract();
-	event* best = nullptr;
-	long best_value = 0;
-	for (event* candidate : present_propaganda(g)) {
-		long v = value(c, project_present(g, c, candidate, modification));
-		if (best == nullptr || v > best_value) {
-			best = candidate;
-			best_value = v;
-		}
-	}
-	return best;
+size_t smart_player::propaganda_target(const decision& d, int modification,
+                                       const std::vector<size_t>& present){
+	return best_propaganda(d, modification, present);
 }
 
 // Memory lapse: a dead card in a hand, given to the mage with the most points
 // (random among the best)
-player* smart_player::choose_opponent(game& g){
-	std::vector<player*> best;
-	for (player* p : opponents(g)) {
-		if (best.empty() || p->get_score() > best.front()->get_score()) {
-			best.assign(1, p);
-		} else if (p->get_score() == best.front()->get_score()) {
-			best.push_back(p);
+size_t smart_player::opponent_target(const decision& d, const std::vector<size_t>& seats){
+	std::vector<size_t> best;
+	for (size_t i = 0; i < seats.size(); ++i) {
+		int score = d.g.player_at(seats[i]).get_score();
+		if (best.empty() || score > d.g.player_at(seats[best.front()]).get_score()) {
+			best.assign(1, i);
+		} else if (score == d.g.player_at(seats[best.front()]).get_score()) {
+			best.push_back(i);
 		}
 	}
-	if (best.empty()) {
-		return nullptr;
-	}
-	return best[g.random_below(best.size())];
+	return best[d.random_below(best.size())];
 }
 
 // Entropy reversal: takes back the most useful card of the cosmos
-size_t smart_player::choose_cosmos_card(game& g){
+size_t smart_player::cosmos_card(const decision& d){
 	std::vector<std::string> names;
-	for (size_t i = 0; i < g.cosmos_cards.size(); ++i) {
-		names.push_back(g.cosmos_cards.card_at(i).name());
+	for (size_t i = 0; i < d.g.cosmos_cards.size(); ++i) {
+		names.push_back(d.g.cosmos_cards.card_at(i).name());
 	}
-	return most_useful(names, available_ether());
+	return most_useful(names, d.self.available_ether());
 }
 
 // leaks the opponent with the most ether, as long as one has some
-player* smart_player::choose_ether_to_leak(game& g){
-	player* target = nullptr;
-	for (player* p : opponents_with_ether(g)) {
-		if (target == nullptr || p->available_ether() > target->available_ether()) {
-			target = p;
+size_t smart_player::ether_leak_target(const decision& d, const std::vector<size_t>& seats){
+	size_t target = seats.size(); // stop
+	for (size_t i = 0; i < seats.size(); ++i) {
+		if (target == seats.size()
+		    || d.g.player_at(seats[i]).available_ether() > d.g.player_at(seats[target]).available_ether()) {
+			target = i;
 		}
 	}
 	return target;
@@ -331,16 +347,17 @@ player* smart_player::choose_ether_to_leak(game& g){
 // --- resolution of the events ----------------------------------------------------
 
 // The faction where the ANY rates best for the contract.
-faction smart_player::choose_faction_for_any(game& g, int value,
-                                             const std::vector<faction>& allowed){
-	return best_faction(get_contract(), g.get_scores_ref(), value, allowed);
+size_t smart_player::any_faction(const decision& d, int value,
+                                 const std::vector<faction>& allowed){
+	faction best = best_faction(d.self.get_contract(), d.g.get_popularity(), value, allowed);
+	return static_cast<size_t>(std::find(allowed.begin(), allowed.end(), best) - allowed.begin());
 }
 
 // The branch whose best application rates best for the contract (the left
 // one on a tie).
-size_t smart_player::choose_divergence_branch(game& g, const event& divergence){
-	const contract& c = get_contract();
-	const std::vector<int>& now = g.get_scores_ref();
+size_t smart_player::divergence_branch(const decision& d, const event& divergence){
+	const contract& c = d.self.get_contract();
+	const std::vector<int>& now = d.g.get_popularity();
 	long left = c.rate(best_application(c, now, divergence.get_left(), 0));
 	long right = c.rate(best_application(c, now, divergence.get_right(), 0));
 	return (right > left) ? 1 : 0;

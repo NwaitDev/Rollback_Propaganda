@@ -88,7 +88,7 @@ TEST_CASE("careful reveal thanks to Reading") {
 	p.remember_future(g.future_events.peek(1));
 	g.present_events.set_stealth(9);
 	CHECK(p.wants_to_reveal_more(g));            // 9 + 8 = 17 <= 21
-	g.players[0]->greed = 20;
+	test::controller_of<smart_player>(g, 0).greed = 20;
 	g.present_events.set_stealth(14);
 	CHECK_FALSE(p.wants_to_reveal_more(g));      // 14 + 8 = 22 > 21
 }

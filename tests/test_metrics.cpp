@@ -9,13 +9,17 @@ namespace {
 struct small_game {
 	game g{21, 1};
 	game_stats stats;
-	test::scripted* a;
-	test::scripted* b;
+	player* a;
+	player* b;
+	test::scripted* ca;   // their controllers
+	test::scripted* cb;
 	explicit small_game(std::vector<event> future, stealth greed = 21) : stats({0, 0, 0}, 2) {
 		g.add_player(std::make_unique<test::scripted>(greed));
 		g.add_player(std::make_unique<test::scripted>(greed));
-		a = static_cast<test::scripted*>(g.players[0].get());
-		b = static_cast<test::scripted*>(g.players[1].get());
+		a = g.players[0].get();
+		b = g.players[1].get();
+		ca = &test::controller_of<test::scripted>(g, 0);
+		cb = &test::controller_of<test::scripted>(g, 1);
 		a->sign_contract(test::make_contract({RED}));
 		b->sign_contract(test::make_contract({YELLOW}));
 		for (auto it = future.rbegin(); it != future.rend(); ++it) g.add_event(*it);
@@ -82,7 +86,7 @@ TEST_CASE("cards: schemed, revealed, failed, dead turns while leading or not") {
 	s.a->receive_card(make_card("EUPHORIA"));      // no propaganda: fails
 	s.a->receive_card(make_card("ETHER"));         // stays in hand this turn
 	s.b->receive_card(make_card("NEURASTHENIA"));
-	s.b->reveal_cards = false;                     // put under the grimory
+	s.cb->reveal_cards = false;                     // put under the grimory
 	s.b->score_points(1);                          // B leads alone
 	s.g.play_turn();
 	auto& c = s.stats.cards;
@@ -112,14 +116,14 @@ TEST_CASE("a rollback gives the schemes back: neither revealed nor failed") {
 TEST_CASE("interactions: memory lapse received, ether leaked, immunity triggered") {
 	test::quiet quiet;
 	small_game lapse({mistake()}, 1);
-	lapse.a->opponent = lapse.b;
+	lapse.ca->opponent = 1;
 	lapse.a->receive_card(make_card("MEMORY_LAPSE"));
 	lapse.g.play_turn();
 	CHECK(lapse.stats.memory_lapses == 1);
 	CHECK(lapse.b->get_hand().get_nb_cards() == 1);
 
 	small_game leak({mistake()}, 1);
-	leak.a->opponent = leak.b;
+	leak.ca->opponent = 1;
 	test::give_ether(*leak.b, 2);
 	leak.a->receive_card(make_card("ETHER_LEAK"));
 	leak.g.play_turn();
@@ -127,7 +131,7 @@ TEST_CASE("interactions: memory lapse received, ether leaked, immunity triggered
 	CHECK(leak.b->available_ether() == 1);
 
 	small_game immune({mistake()}, 1);
-	immune.a->opponent = immune.b;
+	immune.ca->opponent = 1;
 	immune.b->gain_immunity(1);
 	immune.a->receive_card(make_card("MEMORY_LAPSE"));
 	immune.g.play_turn();

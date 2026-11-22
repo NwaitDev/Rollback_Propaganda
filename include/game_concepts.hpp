@@ -56,10 +56,6 @@ enum event_operator {
   DIVERGENCE   // exclusive OR operator for events
 };
 
-enum strategy { RANDOM, SMART };
-
-enum event_pile { PAST, PRESENT, FUTURE };
-
 class event {
 public:
   event(faction faction, int value, stealth stealth);
@@ -248,24 +244,83 @@ private:
   std::vector<card_ptr> cards;
 };
 
+// --- decisions -------------------------------------------------------------------
+// The game never decides for a mage: it asks the controller of that mage
+// (a strategy of the simulation, or a remote player of the server). A
+// controller sees the game read-only and answers with values or indices,
+// never with pointers into the game. Every answer is checked by the game.
+
+// what a controller knows when it is asked to decide
+struct decision {
+  const game &g;
+  const player &self;
+  size_t seat;        // seat of `self`
+  std::mt19937 &rng;  // random draws of the controller
+  inline size_t random_below(size_t n) const { return ::random_below(rng, n); }
+};
+
+class controller {
+public:
+  virtual ~controller() = default;
+  // shown by the text views ("RANDOM", "SMART"...)
+  virtual std::string strategy_name() const = 0;
+  // stealth a strategy is willing to reach while revealing (0: none)
+  virtual stealth get_greed() const { return 0; }
+
+  // - on its turn, reveal one more event of the future (the future is not
+  //   empty and the stealth limit is not reached)
+  virtual bool reveal_more(const decision &d) = 0;
+  // - index (in hand) of the card to scheme this turn; the hand is not empty
+  virtual size_t scheme_card(const decision &d) = 0;
+  // - index (among the schemed cards) of the one to handle next; there are
+  //   several
+  virtual size_t next_shenanigan(const decision &d) = 0;
+  // - reveal the schemed card (true) or put it under the grimory (false)
+  virtual bool reveal_shenanigan(const decision &d, const shenanigan &card) = 0;
+  // - ether to spend on a spell, at most the ether of the mage
+  virtual unsigned ether_to_spend(const decision &d, const spell &s) = 0;
+  // - index in `present` (positions of propagandas in the present, not
+  //   empty) of the one that will be modified by `modification`
+  virtual size_t propaganda_target(const decision &d, int modification,
+                                   const std::vector<size_t> &present) = 0;
+  // - index in `seats` (other mages, not empty) of the target of a spell
+  virtual size_t opponent_target(const decision &d, const std::vector<size_t> &seats) = 0;
+  // - index of a card to take back from the cosmos; the cosmos is not empty
+  virtual size_t cosmos_card(const decision &d) = 0;
+  // - index in `seats` (other mages with ether, maybe empty) of the one that
+  //   will lose an ether, seats.size() to stop leaking
+  virtual size_t ether_leak_target(const decision &d, const std::vector<size_t> &seats) = 0;
+  // - branch of a divergence (OR) that applies: 0 = left, 1 = right
+  virtual size_t divergence_branch(const decision &d, const event &divergence) = 0;
+  // - index in `allowed` of the faction receiving an ANY propaganda of this
+  //   value
+  virtual size_t any_faction(const decision &d, int value,
+                             const std::vector<faction> &allowed) = 0;
+};
+
+
+// A mage at the table: their cards, contract and points. The decisions are
+// taken by their controller; the methods choose_* ask it, check the answer
+// and return what the rules need.
 class player {
 public:
-  player(stealth greed, strategy strat);
+  explicit player(std::unique_ptr<controller> c);
   void sign_contract(const contract &c);
   void score_points(int amount);
   int get_score() const;
   const contract &get_contract() const;
-  int get_greed() const;
-  inline strategy get_strategy() const { return strat; }
-  inline const std::string &get_deck_name() const { return deck_name; }
+  inline controller &get_controller() { return *ctrl; }
+  inline const controller &get_controller() const { return *ctrl; }
   inline size_t grimory_size() const { return deck.size(); }
   inline void refill_hand() { cards_in_hand.draw_up_to_limit(deck); }
   inline const hand &get_hand() const { return cards_in_hand; }
+  inline const lair &get_lair() const { return cards_in_play; }
+  inline const std::string &get_deck_name() const { return deck_name; }
+  inline unsigned get_immunity() const { return immunity_charges; }
   inline void add_to_grimory(card_ptr card) { deck.put_at_bottom(std::move(card)); }
   void give_starting_deck(starting_deck d);
   inline void set_hand_size(size_t size) { cards_in_hand.set_limit(size); }
   void setup(game &g);
-  virtual ~player() = default;
 
   // shenanigan phases, called by the game
   void prepare(game &g);
@@ -284,96 +339,93 @@ public:
   // opponent): the choice is cancelled and one immunity charge is spent
   bool cancels_choice_by(game &g, const player &chooser);
   void end_turn();
-  std::vector<player *> opponents(game &g);
 
-  // decisions, taken according to the player's strategy
-  // - on its turn, reveal one more event of the future (the future is not
-  //   empty and the stealth limit is not reached)
-  virtual bool wants_to_reveal_more(game &g) = 0;
-  // - index (in hand) of the card to scheme this turn; the hand is not empty
-  virtual size_t choose_card_to_scheme(game &g) = 0;
-  // - index of the schemed card to handle next, among several
-  virtual size_t choose_next_shenanigan(game &g) = 0;
-  // - reveal the schemed card (true) or put it under the grimory (false)
-  virtual bool wants_to_reveal(game &g, const shenanigan &card) = 0;
-  // - ether to spend on a spell, at most available_ether()
-  virtual unsigned choose_ether_to_spend(game &g, const spell &s) = 0;
-  // - propaganda of the present that will be modified by `modification`,
-  //   nullptr if there is none
-  virtual event *choose_propaganda(game &g, int modification) = 0;
-  // - another mage, nullptr if there is none
-  virtual player *choose_opponent(game &g) = 0;
-  // - index of a card to take back from the cosmos; the cosmos is not empty
-  virtual size_t choose_cosmos_card(game &g) = 0;
-  // - an opponent that will lose one ether, nullptr to stop leaking
-  virtual player *choose_ether_to_leak(game &g) = 0;
-  // - branch of a divergence (OR) that applies: 0 = left, 1 = right
-  virtual size_t choose_divergence_branch(game &g, const event &divergence) = 0;
-  // - faction receiving an ANY propaganda of this value, among `allowed`
-  virtual faction choose_faction_for_any(game &g, int value,
-                                         const std::vector<faction> &allowed) = 0;
+  // events seen with the Reading spell, top of the future first
+  inline const std::vector<event> &get_known_events() const { return known_events; }
+  // the card of the game with this id, if this player has seen it
+  const event *known_event(long id) const;
 
-protected:
+  // decisions (see class controller), checked
+  bool wants_to_reveal_more(game &g);
+  size_t choose_card_to_scheme(game &g);
+  size_t choose_next_shenanigan(game &g);
+  bool wants_to_reveal(game &g, const shenanigan &card);
+  unsigned choose_ether_to_spend(game &g, const spell &s);
+  // nullptr if there is no propaganda in the present
+  event *choose_propaganda(game &g, int modification);
+  // nullptr if there is no other mage
+  player *choose_opponent(game &g);
+  size_t choose_cosmos_card(game &g);
+  // nullptr to stop leaking
+  player *choose_ether_to_leak(game &g);
+  size_t choose_divergence_branch(game &g, const event &divergence);
+  faction choose_faction_for_any(game &g, int value, const std::vector<faction> &allowed);
+
+private:
+  decision decide(game &g) const;
+
+  std::unique_ptr<controller> ctrl;
   grimory deck;
   hand cards_in_hand = hand(4);
   lair cards_in_play;
   contract signed_contract;
-
-  event &spell_access(game &g, event_pile ep, size_t position);
-  std::vector<event *> present_propaganda(game &g);
-  std::vector<player *> opponents_with_ether(game &g);
-
-  // events seen with the Reading spell, top of the future first
   std::vector<event> known_events;
-  // the card of the game with this id, if this player has seen it
-  const event *known_event(long id) const;
-
-private:
-  stealth greed;
   int points = 0;
-  strategy strat;
   std::string deck_name = "none";
   unsigned immunity_charges = 0;
 };
 
-class random_player : public player {
+// every choice is random, except revealing: up to the greed
+class random_player : public controller {
 public:
-  random_player(stealth greed);
+  explicit random_player(stealth greed) : greed(greed) {}
+  std::string strategy_name() const override { return "RANDOM"; }
+  stealth get_greed() const override { return greed; }
 
-  bool wants_to_reveal_more(game &g) override;
-  size_t choose_card_to_scheme(game &g) override;
-  size_t choose_next_shenanigan(game &g) override;
-  bool wants_to_reveal(game &g, const shenanigan &card) override;
-  unsigned choose_ether_to_spend(game &g, const spell &s) override;
-  event *choose_propaganda(game &g, int modification) override;
-  player *choose_opponent(game &g) override;
-  size_t choose_cosmos_card(game &g) override;
-  player *choose_ether_to_leak(game &g) override;
-  size_t choose_divergence_branch(game &g, const event &divergence) override;
-  faction choose_faction_for_any(game &g, int value,
-                                 const std::vector<faction> &allowed) override;
+  bool reveal_more(const decision &d) override;
+  size_t scheme_card(const decision &d) override;
+  size_t next_shenanigan(const decision &d) override;
+  bool reveal_shenanigan(const decision &d, const shenanigan &card) override;
+  unsigned ether_to_spend(const decision &d, const spell &s) override;
+  size_t propaganda_target(const decision &d, int modification,
+                           const std::vector<size_t> &present) override;
+  size_t opponent_target(const decision &d, const std::vector<size_t> &seats) override;
+  size_t cosmos_card(const decision &d) override;
+  size_t ether_leak_target(const decision &d, const std::vector<size_t> &seats) override;
+  size_t divergence_branch(const decision &d, const event &divergence) override;
+  size_t any_faction(const decision &d, int value,
+                     const std::vector<faction> &allowed) override;
+
+private:
+  stealth greed;
 };
 
-class smart_player : public player {
+// simple heuristics in favour of its contract (see smart_player.cpp)
+class smart_player : public controller {
 public:
-  smart_player(stealth greed);
+  explicit smart_player(stealth greed) : greed(greed) {}
+  std::string strategy_name() const override { return "SMART"; }
+  stealth get_greed() const override { return greed; }
 
-  bool wants_to_reveal_more(game &g) override;
-  size_t choose_card_to_scheme(game &g) override;
-  size_t choose_next_shenanigan(game &g) override;
-  bool wants_to_reveal(game &g, const shenanigan &card) override;
-  unsigned choose_ether_to_spend(game &g, const spell &s) override;
-  event *choose_propaganda(game &g, int modification) override;
-  player *choose_opponent(game &g) override;
-  size_t choose_cosmos_card(game &g) override;
-  player *choose_ether_to_leak(game &g) override;
-  size_t choose_divergence_branch(game &g, const event &divergence) override;
-  faction choose_faction_for_any(game &g, int value,
-                                 const std::vector<faction> &allowed) override;
+  bool reveal_more(const decision &d) override;
+  size_t scheme_card(const decision &d) override;
+  size_t next_shenanigan(const decision &d) override;
+  bool reveal_shenanigan(const decision &d, const shenanigan &card) override;
+  unsigned ether_to_spend(const decision &d, const spell &s) override;
+  size_t propaganda_target(const decision &d, int modification,
+                           const std::vector<size_t> &present) override;
+  size_t opponent_target(const decision &d, const std::vector<size_t> &seats) override;
+  size_t cosmos_card(const decision &d) override;
+  size_t ether_leak_target(const decision &d, const std::vector<size_t> &seats) override;
+  size_t divergence_branch(const decision &d, const event &divergence) override;
+  size_t any_faction(const decision &d, int value,
+                     const std::vector<faction> &allowed) override;
+
+private:
+  stealth greed;
 };
 
 class present {
-  friend class player;
 
 public:
   stealth append_from_future(future &future);
@@ -385,6 +437,7 @@ public:
   const event draw_last();
   inline bool is_empty() const {return present.empty();};
   inline const std::deque<event> &show_events() const {return present;};
+  inline event &event_at(size_t position) { return present.at(position); }
 
 private:
   std::deque<event> present = std::deque<event>();
@@ -392,7 +445,6 @@ private:
 };
 
 class future {
-  friend class player;
 
 public:
   const event draw();
@@ -411,7 +463,6 @@ private:
 };
 
 class past {
-  friend class player;
 
 public:
   void pass(const event &executed_event);
@@ -508,7 +559,8 @@ public:
   void setup();
   bool current_player_wants_to_play_and_can();
   inline stealth get_max_stealth() const { return max_stealth; }
-  void add_player(std::unique_ptr<player> p);
+  // a new mage, whose decisions are taken by `c`
+  void add_player(std::unique_ptr<controller> c);
   void add_event(const event &e);
   void play_turn();
   // plays until the future is empty; returns false if the game is still
@@ -520,6 +572,17 @@ public:
   inline std::vector<std::unique_ptr<player>> &get_players_ref() {
     return players;
   };
+
+  // read-only queries, for the controllers and the observers
+  inline const std::vector<int> &get_popularity() const { return scores; }
+  inline size_t nb_players() const { return players.size(); }
+  inline const player &player_at(size_t seat) const { return *players.at(seat); }
+  // seats of the other mages, in seat order
+  std::vector<size_t> opponents_of(size_t seat) const;
+  // seats of the other mages that have revealed ether, in seat order
+  std::vector<size_t> opponents_with_ether(size_t seat) const;
+  // positions in the present of the propaganda cards
+  std::vector<size_t> propaganda_in_present() const;
 
   size_t current_player = 0;
 
@@ -540,6 +603,8 @@ public:
   inline size_t random_below(size_t n) { return ::random_below(generator, n); }
   // the mage whose turn it is controls the events of the present
   inline player &get_current_player() { return *players[current_player]; }
+  // the event at this position of the present, to be modified by a spell
+  inline event &present_event_at(size_t position) { return present_events.event_at(position); }
 
   void shuffle();
 

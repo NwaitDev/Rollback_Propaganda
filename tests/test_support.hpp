@@ -121,31 +121,40 @@ inline size_t grimory_cards(game& g) {
 	return total;
 }
 
-// a player whose every choice is scripted by the test
-class scripted : public player {
+// a controller whose every choice is scripted by the test
+class scripted : public controller {
 public:
-	explicit scripted(stealth greed) : player(greed, RANDOM) {}
+	explicit scripted(stealth greed) : greed(greed) {}
+	stealth greed;
 	bool reveal_cards = true;          // reveal the schemed cards
-	player* opponent = nullptr;        // target of Memory lapse and Ether leak
-	bool wants_to_reveal_more(game& g) override { return g.present_events.get_stealth() < get_greed(); }
-	size_t choose_card_to_scheme(game&) override { return 0; }
-	size_t choose_next_shenanigan(game&) override { return 0; }
-	bool wants_to_reveal(game&, const shenanigan&) override { return reveal_cards; }
-	unsigned choose_ether_to_spend(game&, const spell&) override { return 0; }
-	event* choose_propaganda(game& g, int) override {
-		auto candidates = present_propaganda(g);
-		return candidates.empty() ? nullptr : candidates[0];
+	size_t opponent = 0;               // seat targeted by Memory lapse and Ether leak
+	std::string strategy_name() const override { return "SCRIPTED"; }
+	stealth get_greed() const override { return greed; }
+	bool reveal_more(const decision& d) override { return d.g.present_events.get_stealth() < greed; }
+	size_t scheme_card(const decision&) override { return 0; }
+	size_t next_shenanigan(const decision&) override { return 0; }
+	bool reveal_shenanigan(const decision&, const shenanigan&) override { return reveal_cards; }
+	unsigned ether_to_spend(const decision&, const spell&) override { return 0; }
+	size_t propaganda_target(const decision&, int, const std::vector<size_t>&) override { return 0; }
+	// the scripted opponent (the first one if it is not an opponent)
+	size_t opponent_target(const decision&, const std::vector<size_t>& seats) override {
+		auto it = std::find(seats.begin(), seats.end(), opponent);
+		return (it == seats.end()) ? 0 : static_cast<size_t>(it - seats.begin());
 	}
-	player* choose_opponent(game&) override { return opponent; }
-	size_t choose_cosmos_card(game&) override { return 0; }
-	player* choose_ether_to_leak(game&) override {
-		return (opponent && opponent->available_ether() > 0) ? opponent : nullptr;
+	size_t cosmos_card(const decision&) override { return 0; }
+	// the scripted opponent while it has ether, then stop
+	size_t ether_leak_target(const decision&, const std::vector<size_t>& seats) override {
+		return static_cast<size_t>(std::find(seats.begin(), seats.end(), opponent) - seats.begin());
 	}
-	size_t choose_divergence_branch(game&, const event&) override { return 0; }
-	faction choose_faction_for_any(game&, int, const std::vector<faction>& allowed) override {
-		return allowed.front();
-	}
+	size_t divergence_branch(const decision&, const event&) override { return 0; }
+	size_t any_faction(const decision&, int, const std::vector<faction>&) override { return 0; }
 };
+
+// the controller of a seat, as its concrete type
+template <class C>
+C& controller_of(game& g, size_t seat) {
+	return static_cast<C&>(g.players.at(seat)->get_controller());
+}
 
 // a JSON file written for a test, removed afterwards
 struct temporary_file {
