@@ -311,7 +311,7 @@ forced execute!
 turn:42.	remaining cards: 1
 propaganda!
 the game is over!
-contract: favori rouge / strategy: RANDOM / deck: empty / greed: 10 (score :16) / grimory: 0, hand: 0
-contract: outsider jaune / strategy: RANDOM / deck: empty / greed: 10 (score :18) / grimory: 0, hand: 0
-contract: duo jaune-bleu / strategy: RANDOM / deck: empty / greed: 10 (score :2) / grimory: 0, hand: 0
-winner: player n°1 (contract: outsider jaune / strategy: RANDOM / deck: empty / greed: 10 (score :18) / grimory: 0, hand: 0)
+contract: favori rouge / strategy: RANDOM / deck: empty / greed: 10 (score :12) / grimory: 0, hand: 0
+contract: outsider jaune / strategy: RANDOM / deck: empty / greed: 10 (score :12) / grimory: 0, hand: 0
+contract: duo jaune-bleu / strategy: RANDOM / deck: empty / greed: 10 (score :4) / grimory: 0, hand: 0
+winner: player n°0 (contract: favori rouge / strategy: RANDOM / deck: empty / greed: 10 (score :12) / grimory: 0, hand: 0)

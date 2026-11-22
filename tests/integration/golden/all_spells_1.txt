@@ -148,8 +148,8 @@ turn:3.	remaining cards: 113
 propaganda!
 multi_propaganda!
 propaganda!
-turn:4.	remaining cards: 110
 multi_propaganda!
+turn:4.	remaining cards: 109
 multi_propaganda!
 forced execute!
 turn:5.	remaining cards: 107
@@ -186,10 +186,13 @@ turn:12.	remaining cards: 87
 multi_propaganda!
 election!
 propaganda!
-ELECTION EXECUTEE
-turn:13.	remaining cards: 84
 multi_propaganda!
 explosion!
+turn:13.	remaining cards: 86
+multi_propaganda!
+election!
+propaganda!
+ELECTION EXECUTEE
 turn:14.	remaining cards: 83
 multi_propaganda!
 multi_propaganda!
@@ -204,105 +207,102 @@ multi_propaganda!
 election!
 multi_propaganda!
 election!
-ELECTION EXECUTEE
-ELECTION EXECUTEE
-turn:17.	remaining cards: 70
 election!
-propaganda!
-propaganda!
-mistake!
 ELECTION EXECUTEE
-turn:18.	remaining cards: 66
+ELECTION EXECUTEE
+ELECTION EXECUTEE
+turn:17.	remaining cards: 69
+propaganda!
+propaganda!
+mistake!
 multi_propaganda!
-explosion!
-turn:19.	remaining cards: 65
+turn:18.	remaining cards: 63
 multi_propaganda!
 propaganda!
 multi_propaganda!
-turn:20.	remaining cards: 62
-propaganda!
+turn:19.	remaining cards: 60
 multi_propaganda!
-multi_propaganda!
-turn:21.	remaining cards: 59
 forced execute!
-turn:22.	remaining cards: 58
+turn:20.	remaining cards: 58
 propaganda!
 forced execute!
-turn:23.	remaining cards: 56
+turn:21.	remaining cards: 56
 multi_propaganda!
 mistake!
 multi_propaganda!
 multi_propaganda!
 propaganda!
-turn:24.	remaining cards: 51
+turn:22.	remaining cards: 51
 propaganda!
 propaganda!
 mistake!
 propaganda!
-turn:25.	remaining cards: 47
+turn:23.	remaining cards: 47
 multi_propaganda!
 forced execute!
-forced rollback!
-turn:26.	remaining cards: 47
+turn:24.	remaining cards: 45
+propaganda!
 multi_propaganda!
+mistake!
+propaganda!
+turn:25.	remaining cards: 41
+multi_propaganda!
+multi_propaganda!
+multi_propaganda!
+propaganda!
+turn:26.	remaining cards: 37
+multi_propaganda!
+multi_propaganda!
+multi_propaganda!
+multi_propaganda!
+turn:27.	remaining cards: 33
+multi_propaganda!
+propaganda!
+multi_propaganda!
+turn:28.	remaining cards: 30
+propaganda!
+propaganda!
+multi_propaganda!
+turn:29.	remaining cards: 27
+propaganda!
+mistake!
+propaganda!
+multi_propaganda!
+turn:30.	remaining cards: 23
+multi_propaganda!
+multi_propaganda!
+propaganda!
+turn:31.	remaining cards: 20
+propaganda!
 forced execute!
-turn:27.	remaining cards: 45
-propaganda!
-multi_propaganda!
-mistake!
-propaganda!
-turn:28.	remaining cards: 41
-multi_propaganda!
-multi_propaganda!
-multi_propaganda!
-propaganda!
-turn:29.	remaining cards: 37
-multi_propaganda!
-multi_propaganda!
-multi_propaganda!
-multi_propaganda!
-turn:30.	remaining cards: 33
+turn:32.	remaining cards: 18
 multi_propaganda!
 propaganda!
 multi_propaganda!
-turn:31.	remaining cards: 30
-propaganda!
-propaganda!
-multi_propaganda!
-propaganda!
-mistake!
-turn:32.	remaining cards: 25
-propaganda!
-multi_propaganda!
-multi_propaganda!
-turn:33.	remaining cards: 18
-multi_propaganda!
-propaganda!
-multi_propaganda!
-turn:34.	remaining cards: 15
+turn:33.	remaining cards: 15
 multi_propaganda!
 multi_propaganda!
 multi_propaganda!
 multi_propaganda!
-turn:35.	remaining cards: 11
+turn:34.	remaining cards: 11
 propaganda!
 propaganda!
 election!
 ELECTION EXECUTEE
-turn:36.	remaining cards: 8
+turn:35.	remaining cards: 8
 propaganda!
 multi_propaganda!
 multi_propaganda!
-turn:37.	remaining cards: 5
+turn:36.	remaining cards: 5
 explosion!
-turn:38.	remaining cards: 4
+turn:37.	remaining cards: 4
 propaganda!
 multi_propaganda!
 propaganda!
-turn:39.	remaining cards: 1
+turn:38.	remaining cards: 1
 propaganda!
 the game is over!
-contract: outsider jaune / strategy: RANDOM / deck: all_spells / greed: 10 (score :0) / grimory: 0, hand: 1
-contract: duo jaune-bleu / strategy: RANDOM / deck: all_spells / greed: 10 (score :8) / grimory: 0, hand: 3
-contract: outsider rouge / strategy: RANDOM / deck: all_spells / greed: 10 (score :18) / grimory: 0, hand: 3
-winner: player n°2 (contract: outsider rouge / strategy: RANDOM / deck: all_spells / greed: 10 (score :18) / grimory: 0, hand: 3)
+contract: outsider jaune / strategy: RANDOM / deck: all_spells / greed: 10 (score :12) / grimory: 0, hand: 4
+contract: duo jaune-bleu / strategy: RANDOM / deck: all_spells / greed: 10 (score :3) / grimory: 0, hand: 3
+contract: outsider rouge / strategy: RANDOM / deck: all_spells / greed: 10 (score :9) / grimory: 0, hand: 1
+winner: player n°0 (contract: outsider jaune / strategy: RANDOM / deck: all_spells / greed: 10 (score :12) / grimory: 0, hand: 4)

@@ -8,6 +8,11 @@ player::player(std::unique_ptr<controller> c) : ctrl(std::move(c)) {
   }
 }
 
+void controller::seed_for(unsigned game_seed, size_t seat) {
+  std::seed_seq seq{game_seed, static_cast<unsigned>(seat), 0x524f4c4cu};
+  generator.seed(seq);
+}
+
 void player::sign_contract(const contract &c) { signed_contract = c; }
 
 void player::score_points(int amount) { points += amount; }
@@ -127,7 +132,7 @@ void player::end_turn() {
 // controller (the server checks the answers of remote players beforehand).
 
 decision player::decide(game &g) const {
-  return decision{g, *this, g.seat_of(*this), g.rng()};
+  return decision{g, *this, g.seat_of(*this), ctrl->rng()};
 }
 
 bool player::wants_to_reveal_more(game &g) {

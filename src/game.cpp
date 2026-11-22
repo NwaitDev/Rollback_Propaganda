@@ -79,6 +79,7 @@ void game::add_event(const event& e){
 }
 
 void game::add_player(std::unique_ptr<controller> c){
+	c->seed_for(seed, players.size());
 	players.push_back(std::make_unique<player>(std::move(c)));
 }
 

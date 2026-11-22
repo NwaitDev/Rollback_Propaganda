@@ -161,9 +161,9 @@ propaganda!
 multi_propaganda!
 election!
 propaganda!
-multi_propaganda!
 ELECTION EXECUTEE
-turn:7.	remaining cards: 99
+turn:7.	remaining cards: 100
+multi_propaganda!
 multi_propaganda!
 election!
 propaganda!
@@ -176,148 +176,140 @@ multi_propaganda!
 propaganda!
 propaganda!
 propaganda!
+turn:10.	remaining cards: 91
 multi_propaganda!
 multi_propaganda!
+election!
+multi_propaganda!
+ELECTION EXECUTEE
+turn:11.	remaining cards: 87
+multi_propaganda!
+election!
+propaganda!
+ELECTION EXECUTEE
+turn:12.	remaining cards: 84
+multi_propaganda!
+explosion!
+turn:13.	remaining cards: 83
+multi_propaganda!
+multi_propaganda!
+propaganda!
+turn:14.	remaining cards: 80
+multi_propaganda!
+multi_propaganda!
+multi_propaganda!
+multi_propaganda!
+turn:15.	remaining cards: 76
+multi_propaganda!
+propaganda!
+multi_propaganda!
+turn:16.	remaining cards: 73
+election!
+multi_propaganda!
+election!
+election!
+ELECTION EXECUTEE
+ELECTION EXECUTEE
+ELECTION EXECUTEE
+turn:17.	remaining cards: 69
+propaganda!
+propaganda!
+mistake!
+multi_propaganda!
+turn:18.	remaining cards: 65
+explosion!
+turn:19.	remaining cards: 64
+propaganda!
+multi_propaganda!
+propaganda!
+turn:20.	remaining cards: 61
+multi_propaganda!
+multi_propaganda!
+forced execute!
+turn:21.	remaining cards: 58
+propaganda!
+forced execute!
+turn:22.	remaining cards: 56
+multi_propaganda!
+mistake!
+multi_propaganda!
+multi_propaganda!
+propaganda!
+turn:23.	remaining cards: 51
+propaganda!
+propaganda!
+mistake!
+propaganda!
+turn:24.	remaining cards: 47
+multi_propaganda!
+forced execute!
 forced rollback!
-turn:10.	remaining cards: 95
+turn:25.	remaining cards: 47
+multi_propaganda!
+forced execute!
+turn:26.	remaining cards: 45
+propaganda!
+multi_propaganda!
+mistake!
+propaganda!
+turn:27.	remaining cards: 41
+multi_propaganda!
+multi_propaganda!
 multi_propaganda!
 propaganda!
+turn:28.	remaining cards: 37
+multi_propaganda!
+multi_propaganda!
+multi_propaganda!
+multi_propaganda!
+turn:29.	remaining cards: 33
+multi_propaganda!
 propaganda!
-turn:11.	remaining cards: 92
+multi_propaganda!
+turn:30.	remaining cards: 30
+propaganda!
 propaganda!
 multi_propaganda!
+turn:31.	remaining cards: 27
+propaganda!
+mistake!
+propaganda!
 multi_propaganda!
-turn:12.	remaining cards: 89
-election!
+turn:32.	remaining cards: 23
 multi_propaganda!
 multi_propaganda!
+propaganda!
+turn:33.	remaining cards: 20
+propaganda!
+forced execute!
+turn:34.	remaining cards: 18
+multi_propaganda!
+propaganda!
+multi_propaganda!
+turn:35.	remaining cards: 15
+multi_propaganda!
+multi_propaganda!
+multi_propaganda!
+multi_propaganda!
+turn:36.	remaining cards: 11
+propaganda!
+propaganda!
 election!
 ELECTION EXECUTEE
-ELECTION EXECUTEE
-turn:13.	remaining cards: 85
+turn:37.	remaining cards: 8
 propaganda!
 multi_propaganda!
+multi_propaganda!
+turn:38.	remaining cards: 5
 explosion!
-turn:14.	remaining cards: 84
-propaganda!
-multi_propaganda!
-multi_propaganda!
-turn:15.	remaining cards: 81
-propaganda!
-multi_propaganda!
-multi_propaganda!
-turn:16.	remaining cards: 78
-multi_propaganda!
-multi_propaganda!
-multi_propaganda!
-propaganda!
-turn:17.	remaining cards: 74
-multi_propaganda!
-election!
-multi_propaganda!
-election!
-ELECTION EXECUTEE
-ELECTION EXECUTEE
-turn:18.	remaining cards: 70
-election!
-propaganda!
-propaganda!
-ELECTION EXECUTEE
-turn:19.	remaining cards: 67
-mistake!
-multi_propaganda!
-explosion!
-turn:20.	remaining cards: 66
-mistake!
-multi_propaganda!
-propaganda!
-multi_propaganda!
-turn:21.	remaining cards: 62
-propaganda!
-multi_propaganda!
-multi_propaganda!
-turn:22.	remaining cards: 59
-forced execute!
-turn:23.	remaining cards: 58
-propaganda!
-forced execute!
-turn:24.	remaining cards: 56
-multi_propaganda!
-mistake!
-multi_propaganda!
-multi_propaganda!
-propaganda!
-turn:25.	remaining cards: 51
-propaganda!
-propaganda!
-mistake!
-propaganda!
-turn:26.	remaining cards: 47
-multi_propaganda!
-forced execute!
-turn:27.	remaining cards: 45
-propaganda!
-multi_propaganda!
-mistake!
-propaganda!
-turn:28.	remaining cards: 41
-multi_propaganda!
-multi_propaganda!
-multi_propaganda!
-propaganda!
-turn:29.	remaining cards: 37
-multi_propaganda!
-multi_propaganda!
-multi_propaganda!
-multi_propaganda!
-turn:30.	remaining cards: 33
-multi_propaganda!
-propaganda!
-multi_propaganda!
-turn:31.	remaining cards: 30
-propaganda!
-propaganda!
-multi_propaganda!
-turn:32.	remaining cards: 27
-propaganda!
-mistake!
-propaganda!
-multi_propaganda!
-turn:33.	remaining cards: 23
-multi_propaganda!
-multi_propaganda!
-propaganda!
-turn:34.	remaining cards: 20
-propaganda!
-forced execute!
-turn:35.	remaining cards: 18
-multi_propaganda!
-propaganda!
-multi_propaganda!
-turn:36.	remaining cards: 15
-multi_propaganda!
-multi_propaganda!
-multi_propaganda!
-multi_propaganda!
-turn:37.	remaining cards: 11
-propaganda!
-propaganda!
-election!
-ELECTION EXECUTEE
-turn:38.	remaining cards: 8
-propaganda!
-multi_propaganda!
-multi_propaganda!
-turn:39.	remaining cards: 5
-explosion!
-turn:40.	remaining cards: 4
+turn:39.	remaining cards: 4
 propaganda!
 multi_propaganda!
 propaganda!
-turn:41.	remaining cards: 1
+turn:40.	remaining cards: 1
 propaganda!
 the game is over!
-contract: outsider jaune / strategy: RANDOM / deck: implemented / greed: 10 (score :3) / grimory: 0, hand: 1
-contract: duo jaune-bleu / strategy: RANDOM / deck: implemented / greed: 10 (score :4) / grimory: 0, hand: 2
-contract: outsider rouge / strategy: RANDOM / deck: implemented / greed: 10 (score :12) / grimory: 0, hand: 0
-winner: player n°2 (contract: outsider rouge / strategy: RANDOM / deck: implemented / greed: 10 (score :12) / grimory: 0, hand: 0)
+contract: outsider jaune / strategy: RANDOM / deck: implemented / greed: 10 (score :9) / grimory: 1, hand: 4
+contract: duo jaune-bleu / strategy: RANDOM / deck: implemented / greed: 10 (score :3) / grimory: 0, hand: 0
+contract: outsider rouge / strategy: RANDOM / deck: implemented / greed: 10 (score :9) / grimory: 0, hand: 0
+winner: player n°0 (contract: outsider jaune / strategy: RANDOM / deck: implemented / greed: 10 (score :9) / grimory: 1, hand: 4)

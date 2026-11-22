@@ -143,40 +143,38 @@ multi_propaganda!
 election!
 propaganda!
 ELECTION EXECUTEE
-turn:2.	remaining cards: 112
+turn:2.	remaining cards: 114
+multi_propaganda!
 propaganda!
+propaganda!
+turn:3.	remaining cards: 111
 propaganda!
 election!
+multi_propaganda!
+multi_propaganda!
 ELECTION EXECUTEE
-turn:3.	remaining cards: 109
+turn:4.	remaining cards: 107
 multi_propaganda!
-multi_propaganda!
-multi_propaganda!
-multi_propaganda!
-turn:4.	remaining cards: 105
-multi_propaganda!
-propaganda!
-propaganda!
-turn:5.	remaining cards: 102
 multi_propaganda!
 multi_propaganda!
 propaganda!
+turn:5.	remaining cards: 103
+propaganda!
 multi_propaganda!
-turn:6.	remaining cards: 98
+multi_propaganda!
+turn:6.	remaining cards: 100
 propaganda!
 multi_propaganda!
 propaganda!
-turn:7.	remaining cards: 95
-multi_propaganda!
+turn:7.	remaining cards: 97
 multi_propaganda!
 propaganda!
-turn:8.	remaining cards: 92
 multi_propaganda!
+turn:8.	remaining cards: 94
 multi_propaganda!
-forced execute!
-forced rollback!
-turn:9.	remaining cards: 92
+propaganda!
 multi_propaganda!
+turn:9.	remaining cards: 91
 multi_propaganda!
 forced execute!
 turn:10.	remaining cards: 89
@@ -197,121 +195,115 @@ multi_propaganda!
 propaganda!
 turn:14.	remaining cards: 77
 forced execute!
-turn:15.	remaining cards: 76
+forced rollback!
+turn:15.	remaining cards: 77
+forced execute!
+turn:16.	remaining cards: 76
 propaganda!
 mistake!
 propaganda!
 multi_propaganda!
-turn:16.	remaining cards: 72
-multi_propaganda!
-explosion!
 turn:17.	remaining cards: 71
-multi_propaganda!
+explosion!
+turn:18.	remaining cards: 70
 multi_propaganda!
 propaganda!
-turn:18.	remaining cards: 66
+propaganda!
+turn:19.	remaining cards: 67
 multi_propaganda!
 multi_propaganda!
 multi_propaganda!
+multi_propaganda!
+turn:20.	remaining cards: 63
 explosion!
-turn:19.	remaining cards: 65
-multi_propaganda!
-multi_propaganda!
-multi_propaganda!
+turn:21.	remaining cards: 62
 mistake!
 multi_propaganda!
-turn:20.	remaining cards: 60
 propaganda!
 propaganda!
+turn:22.	remaining cards: 58
 multi_propaganda!
 propaganda!
-turn:21.	remaining cards: 56
 election!
-multi_propaganda!
-propaganda!
-propaganda!
 ELECTION EXECUTEE
-turn:22.	remaining cards: 52
+turn:23.	remaining cards: 55
+multi_propaganda!
 propaganda!
+propaganda!
+propaganda!
+turn:24.	remaining cards: 51
 propaganda!
 multi_propaganda!
-turn:23.	remaining cards: 49
 propaganda!
+turn:25.	remaining cards: 48
 multi_propaganda!
 forced execute!
-turn:24.	remaining cards: 46
+turn:26.	remaining cards: 46
 propaganda!
 multi_propaganda!
 mistake!
 multi_propaganda!
-turn:25.	remaining cards: 42
-explosion!
-turn:26.	remaining cards: 41
+turn:27.	remaining cards: 41
 multi_propaganda!
 multi_propaganda!
 propaganda!
-turn:27.	remaining cards: 38
+turn:28.	remaining cards: 38
 propaganda!
 multi_propaganda!
 explosion!
-turn:28.	remaining cards: 37
+turn:29.	remaining cards: 37
 propaganda!
 multi_propaganda!
 mistake!
 election!
-ELECTION EXECUTEE
-turn:29.	remaining cards: 33
-propaganda!
-propaganda!
 multi_propaganda!
+ELECTION EXECUTEE
+turn:30.	remaining cards: 30
 propaganda!
-turn:30.	remaining cards: 29
 election!
 election!
+ELECTION EXECUTEE
+ELECTION EXECUTEE
+turn:31.	remaining cards: 27
 explosion!
-turn:31.	remaining cards: 28
-election!
-election!
+turn:32.	remaining cards: 26
 multi_propaganda!
 multi_propaganda!
-ELECTION EXECUTEE
-ELECTION EXECUTEE
-turn:32.	remaining cards: 24
 election!
 propaganda!
-multi_propaganda!
 ELECTION EXECUTEE
-turn:33.	remaining cards: 21
+turn:33.	remaining cards: 22
+multi_propaganda!
 multi_propaganda!
 election!
 multi_propaganda!
-propaganda!
 ELECTION EXECUTEE
-turn:34.	remaining cards: 17
-multi_propaganda!
+turn:34.	remaining cards: 18
 propaganda!
 multi_propaganda!
-turn:35.	remaining cards: 14
 propaganda!
-propaganda!
-propaganda!
-turn:36.	remaining cards: 11
-multi_propaganda!
+turn:35.	remaining cards: 15
 multi_propaganda!
 propaganda!
-turn:37.	remaining cards: 8
+propaganda!
+turn:36.	remaining cards: 12
 propaganda!
 multi_propaganda!
 multi_propaganda!
-turn:38.	remaining cards: 5
+turn:37.	remaining cards: 9
+propaganda!
 propaganda!
 multi_propaganda!
+turn:38.	remaining cards: 6
 multi_propaganda!
-turn:39.	remaining cards: 2
+propaganda!
+multi_propaganda!
+turn:39.	remaining cards: 3
+multi_propaganda!
 multi_propaganda!
 forced execute!
 the game is over!
-contract: outsider rouge / strategy: RANDOM / deck: all_spells / greed: 10 (score :6) / grimory: 2, hand: 4
-contract: duo bleu-rouge / strategy: RANDOM / deck: all_spells / greed: 10 (score :10) / grimory: 0, hand: 2
-contract: favori bleu / strategy: RANDOM / deck: all_spells / greed: 10 (score :8) / grimory: 0, hand: 0
-winner: player n°1 (contract: duo bleu-rouge / strategy: RANDOM / deck: all_spells / greed: 10 (score :10) / grimory: 0, hand: 2)
+contract: outsider rouge / strategy: RANDOM / deck: all_spells / greed: 10 (score :12) / grimory: 0, hand: 0
+contract: duo bleu-rouge / strategy: RANDOM / deck: all_spells / greed: 10 (score :7) / grimory: 0, hand: 2
+contract: favori bleu / strategy: RANDOM / deck: all_spells / greed: 10 (score :8) / grimory: 0, hand: 2
+winner: player n°0 (contract: outsider rouge / strategy: RANDOM / deck: all_spells / greed: 10 (score :12) / grimory: 0, hand: 0)

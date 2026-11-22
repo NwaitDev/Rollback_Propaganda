@@ -167,14 +167,14 @@ turn:8.	remaining cards: 98
 propaganda!
 election!
 multi_propaganda!
+propaganda!
+multi_propaganda!
 ELECTION EXECUTEE
-turn:9.	remaining cards: 95
+turn:9.	remaining cards: 93
+propaganda!
 propaganda!
 multi_propaganda!
-propaganda!
-turn:10.	remaining cards: 92
-propaganda!
-multi_propaganda!
+turn:10.	remaining cards: 90
 forced execute!
 turn:11.	remaining cards: 89
 propaganda!
@@ -184,42 +184,41 @@ turn:12.	remaining cards: 86
 propaganda!
 multi_propaganda!
 multi_propaganda!
-turn:13.	remaining cards: 83
 propaganda!
 mistake!
 propaganda!
+turn:13.	remaining cards: 80
 election!
+propaganda!
+propaganda!
 ELECTION EXECUTEE
-turn:14.	remaining cards: 79
+turn:14.	remaining cards: 77
 propaganda!
-propaganda!
-propaganda!
-turn:15.	remaining cards: 76
 explosion!
-turn:16.	remaining cards: 75
+turn:15.	remaining cards: 76
+propaganda!
 multi_propaganda!
 propaganda!
+turn:16.	remaining cards: 73
 mistake!
 multi_propaganda!
-turn:17.	remaining cards: 71
 propaganda!
 multi_propaganda!
+turn:17.	remaining cards: 69
 propaganda!
 multi_propaganda!
-turn:18.	remaining cards: 67
 election!
-forced execute!
 ELECTION EXECUTEE
-turn:19.	remaining cards: 65
-multi_propaganda!
-multi_propaganda!
-multi_propaganda!
-multi_propaganda!
-turn:20.	remaining cards: 61
-multi_propaganda!
-election!
+turn:18.	remaining cards: 66
 forced execute!
 forced rollback!
+turn:19.	remaining cards: 66
+forced execute!
+turn:20.	remaining cards: 65
+multi_propaganda!
+multi_propaganda!
+multi_propaganda!
+multi_propaganda!
 turn:21.	remaining cards: 61
 multi_propaganda!
 election!
@@ -306,11 +305,11 @@ turn:40.	remaining cards: 5
 propaganda!
 propaganda!
 propaganda!
+turn:41.	remaining cards: 2
 propaganda!
-turn:41.	remaining cards: 1
 propaganda!
 the game is over!
-contract: outsider rouge / strategy: RANDOM / deck: implemented / greed: 10 (score :3) / grimory: 0, hand: 1
-contract: duo rouge-jaune / strategy: RANDOM / deck: implemented / greed: 10 (score :8) / grimory: 0, hand: 2
-contract: outsider bleu / strategy: RANDOM / deck: implemented / greed: 10 (score :12) / grimory: 0, hand: 0
-winner: player n°2 (contract: outsider bleu / strategy: RANDOM / deck: implemented / greed: 10 (score :12) / grimory: 0, hand: 0)
+contract: outsider rouge / strategy: RANDOM / deck: implemented / greed: 10 (score :24) / grimory: 0, hand: 0
+contract: duo rouge-jaune / strategy: RANDOM / deck: implemented / greed: 10 (score :1) / grimory: 0, hand: 2
+contract: outsider bleu / strategy: RANDOM / deck: implemented / greed: 10 (score :3) / grimory: 0, hand: 1
+winner: player n°0 (contract: outsider rouge / strategy: RANDOM / deck: implemented / greed: 10 (score :24) / grimory: 0, hand: 0)

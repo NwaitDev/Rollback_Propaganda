@@ -310,7 +310,7 @@ forced execute!
 turn:40.	remaining cards: 1
 forced execute!
 the game is over!
-contract: outsider jaune / strategy: RANDOM / deck: empty / greed: 10 (score :6) / grimory: 0, hand: 0
-contract: outsider bleu / strategy: RANDOM / deck: empty / greed: 10 (score :0) / grimory: 0, hand: 0
-contract: outsider rouge / strategy: RANDOM / deck: empty / greed: 10 (score :9) / grimory: 0, hand: 0
-winner: player n°2 (contract: outsider rouge / strategy: RANDOM / deck: empty / greed: 10 (score :9) / grimory: 0, hand: 0)
+contract: outsider jaune / strategy: RANDOM / deck: empty / greed: 10 (score :0) / grimory: 0, hand: 0
+contract: outsider bleu / strategy: RANDOM / deck: empty / greed: 10 (score :18) / grimory: 0, hand: 0
+contract: outsider rouge / strategy: RANDOM / deck: empty / greed: 10 (score :0) / grimory: 0, hand: 0
+winner: player n°1 (contract: outsider bleu / strategy: RANDOM / deck: empty / greed: 10 (score :18) / grimory: 0, hand: 0)

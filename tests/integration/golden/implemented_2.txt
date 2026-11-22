@@ -158,8 +158,11 @@ turn:5.	remaining cards: 104
 multi_propaganda!
 multi_propaganda!
 forced execute!
-turn:6.	remaining cards: 101
 explosion!
+turn:6.	remaining cards: 103
+multi_propaganda!
+multi_propaganda!
+forced execute!
 turn:7.	remaining cards: 100
 propaganda!
 propaganda!
@@ -190,28 +193,23 @@ multi_propaganda!
 multi_propaganda!
 multi_propaganda!
 election!
-propaganda!
-propaganda!
 ELECTION EXECUTEE
-turn:13.	remaining cards: 76
+turn:13.	remaining cards: 78
 propaganda!
+propaganda!
+propaganda!
+turn:14.	remaining cards: 75
 election!
 multi_propaganda!
+propaganda!
 ELECTION EXECUTEE
-turn:14.	remaining cards: 73
-propaganda!
+turn:15.	remaining cards: 72
 multi_propaganda!
 multi_propaganda!
-turn:15.	remaining cards: 70
 propaganda!
-explosion!
 turn:16.	remaining cards: 69
-propaganda!
-multi_propaganda!
-forced execute!
-forced rollback!
-turn:17.	remaining cards: 69
-propaganda!
+explosion!
+turn:17.	remaining cards: 68
 multi_propaganda!
 forced execute!
 turn:18.	remaining cards: 66
@@ -310,12 +308,11 @@ turn:38.	remaining cards: 5
 propaganda!
 multi_propaganda!
 multi_propaganda!
-turn:39.	remaining cards: 2
 forced execute!
-turn:40.	remaining cards: 1
+turn:39.	remaining cards: 1
 forced execute!
 the game is over!
-contract: outsider jaune / strategy: RANDOM / deck: implemented / greed: 10 (score :24) / grimory: 0, hand: 2
-contract: outsider bleu / strategy: RANDOM / deck: implemented / greed: 10 (score :3) / grimory: 0, hand: 1
-contract: outsider rouge / strategy: RANDOM / deck: implemented / greed: 10 (score :0) / grimory: 0, hand: 0
-winner: player n°0 (contract: outsider jaune / strategy: RANDOM / deck: implemented / greed: 10 (score :24) / grimory: 0, hand: 2)
+contract: outsider jaune / strategy: RANDOM / deck: implemented / greed: 10 (score :3) / grimory: 0, hand: 3
+contract: outsider bleu / strategy: RANDOM / deck: implemented / greed: 10 (score :12) / grimory: 0, hand: 1
+contract: outsider rouge / strategy: RANDOM / deck: implemented / greed: 10 (score :6) / grimory: 0, hand: 1
+winner: player n°1 (contract: outsider bleu / strategy: RANDOM / deck: implemented / greed: 10 (score :12) / grimory: 0, hand: 1)

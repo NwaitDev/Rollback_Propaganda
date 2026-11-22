@@ -181,39 +181,35 @@ turn:10.	remaining cards: 89
 propaganda!
 multi_propaganda!
 multi_propaganda!
-turn:11.	remaining cards: 86
 multi_propaganda!
+turn:11.	remaining cards: 85
 multi_propaganda!
 propaganda!
-turn:12.	remaining cards: 83
 mistake!
 multi_propaganda!
+turn:12.	remaining cards: 81
 forced execute!
-turn:13.	remaining cards: 80
+forced rollback!
+turn:13.	remaining cards: 81
+forced execute!
+turn:14.	remaining cards: 80
 multi_propaganda!
 multi_propaganda!
 propaganda!
-turn:14.	remaining cards: 77
+turn:15.	remaining cards: 77
 forced execute!
-turn:15.	remaining cards: 76
+turn:16.	remaining cards: 76
 propaganda!
 mistake!
 propaganda!
 multi_propaganda!
 multi_propaganda!
 explosion!
-turn:16.	remaining cards: 75
+turn:17.	remaining cards: 75
 propaganda!
 mistake!
 propaganda!
 multi_propaganda!
-turn:17.	remaining cards: 71
-multi_propaganda!
-multi_propaganda!
-propaganda!
-propaganda!
-multi_propaganda!
-forced rollback!
 turn:18.	remaining cards: 71
 multi_propaganda!
 multi_propaganda!
@@ -321,7 +317,7 @@ multi_propaganda!
 multi_propaganda!
 forced execute!
 the game is over!
-contract: outsider rouge / strategy: RANDOM / deck: implemented / greed: 10 (score :0) / grimory: 0, hand: 2
-contract: duo bleu-rouge / strategy: RANDOM / deck: implemented / greed: 10 (score :9) / grimory: 0, hand: 1
-contract: favori bleu / strategy: RANDOM / deck: implemented / greed: 10 (score :0) / grimory: 0, hand: 0
-winner: player n°1 (contract: duo bleu-rouge / strategy: RANDOM / deck: implemented / greed: 10 (score :9) / grimory: 0, hand: 1)
+contract: outsider rouge / strategy: RANDOM / deck: implemented / greed: 10 (score :0) / grimory: 0, hand: 0
+contract: duo bleu-rouge / strategy: RANDOM / deck: implemented / greed: 10 (score :8) / grimory: 0, hand: 1
+contract: favori bleu / strategy: RANDOM / deck: implemented / greed: 10 (score :0) / grimory: 0, hand: 2
+winner: player n°1 (contract: duo bleu-rouge / strategy: RANDOM / deck: implemented / greed: 10 (score :8) / grimory: 0, hand: 1)

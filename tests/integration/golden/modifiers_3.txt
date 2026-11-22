@@ -310,7 +310,7 @@ multi_propaganda!
 multi_propaganda!
 forced execute!
 the game is over!
-contract: outsider rouge / strategy: RANDOM / deck: modifiers / greed: 10 (score :3) / grimory: 0, hand: 0
-contract: duo bleu-rouge / strategy: RANDOM / deck: modifiers / greed: 10 (score :9) / grimory: 0, hand: 0
+contract: outsider rouge / strategy: RANDOM / deck: modifiers / greed: 10 (score :0) / grimory: 0, hand: 0
+contract: duo bleu-rouge / strategy: RANDOM / deck: modifiers / greed: 10 (score :8) / grimory: 0, hand: 0
 contract: favori bleu / strategy: RANDOM / deck: modifiers / greed: 10 (score :0) / grimory: 0, hand: 0
-winner: player n°1 (contract: duo bleu-rouge / strategy: RANDOM / deck: modifiers / greed: 10 (score :9) / grimory: 0, hand: 0)
+winner: player n°1 (contract: duo bleu-rouge / strategy: RANDOM / deck: modifiers / greed: 10 (score :8) / grimory: 0, hand: 0)

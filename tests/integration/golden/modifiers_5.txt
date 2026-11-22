@@ -307,7 +307,7 @@ multi_propaganda!
 turn:40.	remaining cards: 1
 propaganda!
 the game is over!
-contract: favori bleu / strategy: RANDOM / deck: modifiers / greed: 10 (score :4) / grimory: 0, hand: 0
-contract: favori rouge / strategy: RANDOM / deck: modifiers / greed: 10 (score :4) / grimory: 0, hand: 0
-contract: favori jaune / strategy: RANDOM / deck: modifiers / greed: 10 (score :10) / grimory: 0, hand: 0
-winner: player n°2 (contract: favori jaune / strategy: RANDOM / deck: modifiers / greed: 10 (score :10) / grimory: 0, hand: 0)
+contract: favori bleu / strategy: RANDOM / deck: modifiers / greed: 10 (score :6) / grimory: 0, hand: 0
+contract: favori rouge / strategy: RANDOM / deck: modifiers / greed: 10 (score :6) / grimory: 0, hand: 0
+contract: favori jaune / strategy: RANDOM / deck: modifiers / greed: 10 (score :6) / grimory: 0, hand: 0
+winner: player n°2 (contract: favori jaune / strategy: RANDOM / deck: modifiers / greed: 10 (score :6) / grimory: 0, hand: 0)

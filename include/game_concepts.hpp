@@ -10,10 +10,13 @@
 
 using stealth = int;
 
-// Every random draw of a game uses the generator of that game, so that a game
-// can be replayed from its seed. std::mt19937 gives the same numbers with
-// every compiler; std::shuffle and the std distributions do not, hence these
-// two helpers.
+// Every random draw of a game uses the generator of that game (shuffles,
+// contracts, ties), or the generator of a controller (its decisions), which
+// is seeded from the game's seed and the seat: a game can be replayed from its
+// seed, and a controller playing through the server draws the same numbers
+// as in the simulation. std::mt19937 gives the same numbers with every
+// compiler; std::shuffle and the std distributions do not, hence these two
+// helpers.
 inline size_t random_below(std::mt19937 &rng, size_t n) { // in [0, n)
   return rng() % n;
 }
@@ -262,6 +265,11 @@ struct decision {
 class controller {
 public:
   virtual ~controller() = default;
+  // the generator of the decisions, seeded for this game and this seat
+  // (called by game::add_player)
+  void seed_for(unsigned game_seed, size_t seat);
+  inline std::mt19937 &rng() { return generator; }
+
   // shown by the text views ("RANDOM", "SMART"...)
   virtual std::string strategy_name() const = 0;
   // stealth a strategy is willing to reach while revealing (0: none)
@@ -296,6 +304,9 @@ public:
   //   value
   virtual size_t any_faction(const decision &d, int value,
                              const std::vector<faction> &allowed) = 0;
+
+private:
+  std::mt19937 generator;
 };
 
 

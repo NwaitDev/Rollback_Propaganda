@@ -305,7 +305,7 @@ propaganda!
 turn:40.	remaining cards: 1
 propaganda!
 the game is over!
-contract: outsider jaune / strategy: RANDOM / deck: empty / greed: 10 (score :21) / grimory: 0, hand: 0
-contract: duo jaune-bleu / strategy: RANDOM / deck: empty / greed: 10 (score :0) / grimory: 0, hand: 0
-contract: outsider rouge / strategy: RANDOM / deck: empty / greed: 10 (score :0) / grimory: 0, hand: 0
-winner: player n°0 (contract: outsider jaune / strategy: RANDOM / deck: empty / greed: 10 (score :21) / grimory: 0, hand: 0)
+contract: outsider jaune / strategy: RANDOM / deck: empty / greed: 10 (score :18) / grimory: 0, hand: 0
+contract: duo jaune-bleu / strategy: RANDOM / deck: empty / greed: 10 (score :2) / grimory: 0, hand: 0
+contract: outsider rouge / strategy: RANDOM / deck: empty / greed: 10 (score :6) / grimory: 0, hand: 0
+winner: player n°0 (contract: outsider jaune / strategy: RANDOM / deck: empty / greed: 10 (score :18) / grimory: 0, hand: 0)
