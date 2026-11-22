@@ -137,20 +137,29 @@ void game::play_turn(){
 	outcome = turn_outcome::RESOLVED;
 	observer().turn_started(*this);
 
+	start_phase(game_phase::SCHEMES);
 	preparation_phase();
-
+	start_phase(game_phase::REVEAL);
 	reveal_phase();
 
 	// a rollback ends the turn without the following phases
 	if (!turn_rolled_back) {
+		start_phase(game_phase::SPELLS);
 		shenanigan_phase();
 	}
 	if (!turn_rolled_back) {
+		start_phase(game_phase::RESOLUTION);
 		execution_phase();
 	}
 
+	start_phase(game_phase::CLEANUP);
 	cleanup_phase();
 	observer().turn_ended(*this, outcome);
+}
+
+void game::start_phase(game_phase p){
+	phase = p;
+	observer().phase_started(*this, p);
 }
 
 void game::preparation_phase(){
@@ -212,12 +221,22 @@ bool game::reveal_one_event(){
 // The present goes back on the future, every mage takes back the shenanigan
 // still schemed this turn, and the turn ends.
 void game::rollback(){
+	// the last revealed event goes back first: the first revealed one ends
+	// on top of the future
+	std::vector<long> returned;
+	for (const event& e : present_events.show_events()) {
+		returned.push_back(e.get_id());
+	}
 	present_events.rollback(future_events);
 	for (std::unique_ptr<player>& p : players) {
+		size_t first = p->get_hand().get_nb_cards();
 		p->take_back_shenanigan();
+		for (size_t i = first; i < p->get_hand().get_nb_cards(); ++i) {
+			observer().shenanigan_returned(*this, *p, p->get_hand().card_at(i));
+		}
 	}
 	turn_rolled_back = true;
-	observer().rolled_back(*this, outcome);
+	observer().rolled_back(*this, outcome, returned);
 }
 
 void game::shenanigan_phase(){
@@ -229,15 +248,24 @@ void game::execution_phase(){
 	while (!present_events.is_empty()) {
 		event resolved = present_events.take_first();
 		resolve_event(resolved, *players[current_player]);
-		observer().event_resolved(*this, resolved);
 		past_events.pass(resolved);
+		observer().event_resolved(*this, resolved);
 	}
 }
 
 void game::cleanup_phase(){
 	for (std::unique_ptr<player>& p : players) {
+		size_t before = p->get_hand().get_nb_cards();
 		p->refill_hand();
+		size_t drawn = p->get_hand().get_nb_cards() - before;
+		if (drawn > 0) {
+			observer().cards_drawn(*this, *p, drawn);
+		}
+		bool immune = p->get_immunity() > 0;
 		p->end_turn();
+		if (immune) {
+			observer().immunity_expired(*this, *p);
+		}
 	}
 	present_events.set_stealth(0);
 	current_player = (current_player+1) % players.size();

@@ -42,8 +42,9 @@ void player::prepare(game &g) {
   }
   size_t index = choose_card_to_scheme(g);
   card_ptr card = cards_in_hand.play_card(index);
-  g.observer().card_schemed(g, *this, *card);
+  const shenanigan &schemed = *card;
   cards_in_play.prepare_shenanigan(std::move(card));
+  g.observer().card_schemed(g, *this, schemed);
 }
 
 void player::take_back_shenanigan() {
@@ -60,7 +61,9 @@ void player::do_shenanigans(game &g) {
     size_t index = (cards_in_play.nb_prepared() == 1) ? 0 : choose_next_shenanigan(g);
     card_ptr card = cards_in_play.take_prepared_shenanigan(index);
     if (!wants_to_reveal(g, *card)) {
+      const shenanigan &buried = *card;
       deck.put_at_bottom(std::move(card));
+      g.observer().shenanigan_buried(g, *this, buried);
       continue;
     }
     g.observer().card_revealed(g, *this, *card);
@@ -118,7 +121,7 @@ bool player::cancels_choice_by(game &g, const player &chooser) {
     return false;
   }
   --immunity_charges;
-  g.observer().immunity_triggered(g, *this);
+  g.observer().immunity_triggered(g, *this, chooser);
   return true;
 }
 
@@ -191,17 +194,17 @@ player *player::choose_opponent(game &g) {
   return g.get_players_ref()[seats[choice]].get();
 }
 
-size_t player::choose_cosmos_card(game &g) {
-  size_t choice = ctrl->cosmos_card(decide(g));
+size_t player::choose_cosmos_card(game &g, unsigned remaining) {
+  size_t choice = ctrl->cosmos_card(decide(g), remaining);
   if (choice >= g.cosmos_cards.size()) {
     throw std::logic_error("a player chose a card out of the cosmos");
   }
   return choice;
 }
 
-player *player::choose_ether_to_leak(game &g) {
+player *player::choose_ether_to_leak(game &g, unsigned remaining) {
   std::vector<size_t> seats = g.opponents_with_ether(g.seat_of(*this));
-  size_t choice = ctrl->ether_leak_target(decide(g), seats);
+  size_t choice = ctrl->ether_leak_target(decide(g), seats, remaining);
   if (choice > seats.size()) {
     throw std::logic_error("a player chose an invalid ether to leak");
   }

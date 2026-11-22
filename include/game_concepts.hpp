@@ -92,6 +92,10 @@ public:
 
   void modify(const int modif);
   inline bool is_modified() { return modification != 0; };
+  // value printed on the card (the multiplier of a MISTAKE), and the
+  // modification it received in its current zone (see get_value)
+  inline int get_base_value() const { return value; }
+  inline int get_modification() const { return modification; }
   void reset();
 
 private:
@@ -161,6 +165,7 @@ public:
   inline size_t size() const { return cards.size(); }
 
 private:
+  friend class state_codec;
   std::deque<card_ptr> cards; // back() is the top of the grimory
 };
 
@@ -175,6 +180,7 @@ public:
   void draw_up_to_limit(grimory &deck);
 
 private:
+  friend class state_codec;
   size_t cards_limit;
   std::vector<card_ptr> cards;
 };
@@ -191,6 +197,7 @@ public:
   inline unsigned available_ether() const { return ether_pool.size(); }
 
 private:
+  friend class state_codec;
   std::vector<card_ptr> ether_pool;
   std::vector<card_ptr> prepared; // schemed this turn, not handled yet
 };
@@ -244,6 +251,7 @@ public:
   inline size_t size() const { return cards.size(); }
 
 private:
+  friend class state_codec;
   std::vector<card_ptr> cards;
 };
 
@@ -294,10 +302,13 @@ public:
   // - index in `seats` (other mages, not empty) of the target of a spell
   virtual size_t opponent_target(const decision &d, const std::vector<size_t> &seats) = 0;
   // - index of a card to take back from the cosmos; the cosmos is not empty
-  virtual size_t cosmos_card(const decision &d) = 0;
+  //   and `remaining` cards can still be taken (this one included)
+  virtual size_t cosmos_card(const decision &d, unsigned remaining) = 0;
   // - index in `seats` (other mages with ether, maybe empty) of the one that
-  //   will lose an ether, seats.size() to stop leaking
-  virtual size_t ether_leak_target(const decision &d, const std::vector<size_t> &seats) = 0;
+  //   will lose an ether, seats.size() to stop leaking; `remaining` ethers
+  //   can still be leaked (this one included)
+  virtual size_t ether_leak_target(const decision &d, const std::vector<size_t> &seats,
+                                   unsigned remaining) = 0;
   // - branch of a divergence (OR) that applies: 0 = left, 1 = right
   virtual size_t divergence_branch(const decision &d, const event &divergence) = 0;
   // - index in `allowed` of the faction receiving an ANY propaganda of this
@@ -366,13 +377,14 @@ public:
   event *choose_propaganda(game &g, int modification);
   // nullptr if there is no other mage
   player *choose_opponent(game &g);
-  size_t choose_cosmos_card(game &g);
+  size_t choose_cosmos_card(game &g, unsigned remaining);
   // nullptr to stop leaking
-  player *choose_ether_to_leak(game &g);
+  player *choose_ether_to_leak(game &g, unsigned remaining);
   size_t choose_divergence_branch(game &g, const event &divergence);
   faction choose_faction_for_any(game &g, int value, const std::vector<faction> &allowed);
 
 private:
+  friend class state_codec;
   decision decide(game &g) const;
 
   std::unique_ptr<controller> ctrl;
@@ -401,8 +413,9 @@ public:
   size_t propaganda_target(const decision &d, int modification,
                            const std::vector<size_t> &present) override;
   size_t opponent_target(const decision &d, const std::vector<size_t> &seats) override;
-  size_t cosmos_card(const decision &d) override;
-  size_t ether_leak_target(const decision &d, const std::vector<size_t> &seats) override;
+  size_t cosmos_card(const decision &d, unsigned remaining) override;
+  size_t ether_leak_target(const decision &d, const std::vector<size_t> &seats,
+                           unsigned remaining) override;
   size_t divergence_branch(const decision &d, const event &divergence) override;
   size_t any_faction(const decision &d, int value,
                      const std::vector<faction> &allowed) override;
@@ -426,8 +439,9 @@ public:
   size_t propaganda_target(const decision &d, int modification,
                            const std::vector<size_t> &present) override;
   size_t opponent_target(const decision &d, const std::vector<size_t> &seats) override;
-  size_t cosmos_card(const decision &d) override;
-  size_t ether_leak_target(const decision &d, const std::vector<size_t> &seats) override;
+  size_t cosmos_card(const decision &d, unsigned remaining) override;
+  size_t ether_leak_target(const decision &d, const std::vector<size_t> &seats,
+                           unsigned remaining) override;
   size_t divergence_branch(const decision &d, const event &divergence) override;
   size_t any_faction(const decision &d, int value,
                      const std::vector<faction> &allowed) override;
@@ -451,6 +465,7 @@ public:
   inline event &event_at(size_t position) { return present.at(position); }
 
 private:
+  friend class state_codec;
   std::deque<event> present = std::deque<event>();
   stealth current_stealth = 0;
 };
@@ -470,6 +485,7 @@ public:
   inline const std::vector<event> &show_events() const { return future; }
 
 private:
+  friend class state_codec;
   std::vector<event> future = std::vector<event>();
 };
 
@@ -480,6 +496,7 @@ public:
   inline const std::vector<event> &show_events() const { return past; }
 
 private:
+  friend class state_codec;
   std::vector<event> past = std::vector<event>();
 };
 
@@ -492,9 +509,16 @@ enum class turn_outcome { RESOLVED, STEALTH_ROLLBACK, EXPLOSION_ROLLBACK };
 
 enum class tiebreak { NONE, GRIMORY, DRAW };
 
+// the phases of a turn, in order; a rollback skips SPELLS and RESOLUTION
+enum class game_phase { SCHEMES, REVEAL, SPELLS, RESOLUTION, CLEANUP };
+
+// Every notification comes after the change it reports: the game is already
+// in its new state.
 class game_observer {
 public:
   virtual ~game_observer() = default;
+
+  // --- the game --------------------------------------------------------------
   // the future has just been shuffled (before the setup)
   virtual void future_shuffled(game &g) {}
   // play_game() starts, and stops: the future is empty (finished) or the
@@ -502,34 +526,72 @@ public:
   virtual void game_started(game &g) {}
   virtual void game_finished(game &g) {}
   virtual void game_blocked(game &g) {}
-  // a turn starts (before the Phase de Manigances)
+  // a turn starts (before the Phase de Manigances), then each phase
   virtual void turn_started(game &g) {}
+  virtual void phase_started(game &g, game_phase phase) {}
+  // end of a turn (after the hands are refilled)
+  virtual void turn_ended(game &g, turn_outcome outcome) {}
+
+  // --- events ------------------------------------------------------------------
   // an event has just been added to the present (Phase de Révélation or
   // Précipitation); the reveal rules (rollback, collapse) apply after
   virtual void event_revealed(game &g, const event &e) {}
-  // the present goes back on the future and the turn ends; for an
-  // explosion, the explosion is already in the oblivion
-  virtual void rolled_back(game &g, turn_outcome cause) {}
-  // a collapse stops the Phase de Révélation
+  // a collapse stops the Phase de Révélation (the stealth is at its limit)
   virtual void collapse_revealed(game &g) {}
-  // every mage has scored their contract
-  virtual void election_resolved(game &g) {}
-  // a mage schemes a card (Phase de Manigances)
+  // The present went back on the future (ids of these events, top of the
+  // future first) and the turn ends. For an explosion, the explosion is
+  // already in the oblivion; shenanigan_returned comes before.
+  virtual void rolled_back(game &g, turn_outcome cause, const std::vector<long> &returned) {}
+  // a card still schemed goes back to its mage's hand (rollback)
+  virtual void shenanigan_returned(game &g, const player &p, const shenanigan &card) {}
+  // one propaganda of the event being resolved adds `value` to `f`
+  // (after the choices of OR branch and ANY faction)
+  virtual void propaganda_applied(game &g, faction f, int value) {}
+  // an event of the present has been resolved and is now in the past (`e`
+  // still carries its modifications)
+  virtual void event_resolved(game &g, const event &e) {}
+  // every mage has scored their contract (`points` earned, by seat)
+  virtual void election_resolved(game &g, const std::vector<int> &points) {}
+
+  // --- shenanigans -------------------------------------------------------------
+  // a mage schemes a card (Phase de Manigances): it left the hand
   virtual void card_schemed(game &g, const player &p, const shenanigan &card) {}
   // a card stays in a mage's hand during the Phase de Manigances
   virtual void card_kept_in_hand(game &g, const player &p, const shenanigan &card) {}
-  // a mage reveals a schemed card (instead of putting it under the grimory)
+  // a mage puts a schemed card under their grimory instead of revealing it
+  virtual void shenanigan_buried(game &g, const player &p, const shenanigan &card) {}
+  // a mage reveals a schemed card (it resolves next)
   virtual void card_revealed(game &g, const player &p, const shenanigan &card) {}
-  // a revealed spell has no effect, for lack of a target
+  // an ether is stored in its mage's lair
+  virtual void ether_stored(game &g, const player &p) {}
+  // a spell applied: `amount` ether of its caster went to the cosmos
+  virtual void ether_spent(game &g, const player &p, unsigned amount) {}
+  // a revealed spell has no effect, for lack of a target (no ether spent)
   virtual void spell_failed(game &g, const player &p, const shenanigan &card) {}
-  // an event of the present has just been resolved
-  virtual void event_resolved(game &g, const event &e) {}
-  virtual void memory_lapse_received(game &g, const player &target) {}
-  virtual void ether_leaked(game &g, const player &target) {}
-  // a choice of an opponent is cancelled by the immunity of `immune`
-  virtual void immunity_triggered(game &g, const player &immune) {}
-  // end of a turn (after the hands are refilled)
-  virtual void turn_ended(game &g, turn_outcome outcome) {}
+  // a resolved spell is now in the cosmos
+  virtual void spell_discarded(game &g, const player &p, const shenanigan &card) {}
+  // the propaganda at this position of the present was modified
+  virtual void propaganda_modified(game &g, size_t position, int modification) {}
+  // Memory lapse: the card went from the caster to the target's hand
+  virtual void memory_lapse_received(game &g, const player &caster, const player &target) {}
+  // Entropy reversal: the card went from the cosmos to the mage's hand
+  virtual void cosmos_card_taken(game &g, const player &p, const shenanigan &card) {}
+  // Ether leak: an ether of `target` went to the cosmos
+  virtual void ether_leaked(game &g, const player &caster, const player &target) {}
+  // Immunity: the mage gains charges for this turn
+  virtual void immunity_gained(game &g, const player &p, unsigned charges) {}
+  // a choice of `chooser` is cancelled by the immunity of `immune`
+  virtual void immunity_triggered(game &g, const player &immune, const player &chooser) {}
+  // the immunity charges left at the end of the turn are lost
+  virtual void immunity_expired(game &g, const player &p) {}
+  // Reading: the mage saw these events, top of the future first
+  virtual void future_read(game &g, const player &p, const std::vector<event> &events) {}
+  // Chapter skip: an event went from the top of the future to the past
+  virtual void event_skipped(game &g, const event &e) {}
+  // Precipitation: up to `count` events are revealed now
+  virtual void forced_reveal(game &g, int count) {}
+  // a mage draws `count` cards at the end of a turn (the last ones of the hand)
+  virtual void cards_drawn(game &g, const player &p, size_t count) {}
 };
 
 // Forwards every notification to several observers, in the order they were
@@ -545,19 +607,34 @@ public:
   void game_finished(game &g) override;
   void game_blocked(game &g) override;
   void turn_started(game &g) override;
+  void phase_started(game &g, game_phase phase) override;
+  void turn_ended(game &g, turn_outcome outcome) override;
   void event_revealed(game &g, const event &e) override;
-  void rolled_back(game &g, turn_outcome cause) override;
   void collapse_revealed(game &g) override;
-  void election_resolved(game &g) override;
+  void rolled_back(game &g, turn_outcome cause, const std::vector<long> &returned) override;
+  void shenanigan_returned(game &g, const player &p, const shenanigan &card) override;
+  void propaganda_applied(game &g, faction f, int value) override;
+  void event_resolved(game &g, const event &e) override;
+  void election_resolved(game &g, const std::vector<int> &points) override;
   void card_schemed(game &g, const player &p, const shenanigan &card) override;
   void card_kept_in_hand(game &g, const player &p, const shenanigan &card) override;
+  void shenanigan_buried(game &g, const player &p, const shenanigan &card) override;
   void card_revealed(game &g, const player &p, const shenanigan &card) override;
+  void ether_stored(game &g, const player &p) override;
+  void ether_spent(game &g, const player &p, unsigned amount) override;
   void spell_failed(game &g, const player &p, const shenanigan &card) override;
-  void event_resolved(game &g, const event &e) override;
-  void memory_lapse_received(game &g, const player &target) override;
-  void ether_leaked(game &g, const player &target) override;
-  void immunity_triggered(game &g, const player &immune) override;
-  void turn_ended(game &g, turn_outcome outcome) override;
+  void spell_discarded(game &g, const player &p, const shenanigan &card) override;
+  void propaganda_modified(game &g, size_t position, int modification) override;
+  void memory_lapse_received(game &g, const player &caster, const player &target) override;
+  void cosmos_card_taken(game &g, const player &p, const shenanigan &card) override;
+  void ether_leaked(game &g, const player &caster, const player &target) override;
+  void immunity_gained(game &g, const player &p, unsigned charges) override;
+  void immunity_triggered(game &g, const player &immune, const player &chooser) override;
+  void immunity_expired(game &g, const player &p) override;
+  void future_read(game &g, const player &p, const std::vector<event> &events) override;
+  void event_skipped(game &g, const event &e) override;
+  void forced_reveal(game &g, int count) override;
+  void cards_drawn(game &g, const player &p, size_t count) override;
 
 private:
   std::vector<game_observer *> observers;
@@ -598,6 +675,9 @@ public:
   size_t current_player = 0;
 
   inline unsigned get_seed() const { return seed; }
+  // the phase being played (SCHEMES before the first turn)
+  inline game_phase get_phase() const { return phase; }
+  inline size_t contracts_left() const { return contract_pile.size(); }
   inline bool turn_was_rolled_back() const { return turn_rolled_back; }
   void set_contract_pile(std::vector<contract> contracts);
   // the mage with the most points; ties go to the biggest grimory, then to
@@ -653,6 +733,11 @@ private:
   turn_outcome outcome = turn_outcome::RESOLVED;
   observer_list observers;
   long next_event_id = 0;
+  game_phase phase = game_phase::SCHEMES;
+  void start_phase(game_phase p);
+
+  // reads and rebuilds a whole game (see protocol.cpp)
+  friend class state_codec;
 };
 
 #endif

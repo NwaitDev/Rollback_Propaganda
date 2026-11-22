@@ -141,9 +141,9 @@ public:
 		auto it = std::find(seats.begin(), seats.end(), opponent);
 		return (it == seats.end()) ? 0 : static_cast<size_t>(it - seats.begin());
 	}
-	size_t cosmos_card(const decision&) override { return 0; }
+	size_t cosmos_card(const decision&, unsigned) override { return 0; }
 	// the scripted opponent while it has ether, then stop
-	size_t ether_leak_target(const decision&, const std::vector<size_t>& seats) override {
+	size_t ether_leak_target(const decision&, const std::vector<size_t>& seats, unsigned) override {
 		return static_cast<size_t>(std::find(seats.begin(), seats.end(), opponent) - seats.begin());
 	}
 	size_t divergence_branch(const decision&, const event&) override { return 0; }

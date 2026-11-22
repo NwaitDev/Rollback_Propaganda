@@ -66,6 +66,7 @@ void game::apply_propagandas(const std::vector<const event*>& propagandas,
 		} else if (f != NONE) {
 			scores[f] += p->get_value();
 			targeted.push_back(f);
+			observer().propaganda_applied(*this, f, p->get_value());
 		}
 	}
 
@@ -88,14 +89,17 @@ void game::apply_propagandas(const std::vector<const event*>& propagandas,
 		}
 		scores[chosen] += any->get_value();
 		targeted.push_back(chosen);
+		observer().propaganda_applied(*this, chosen, any->get_value());
 	}
 }
 
 // Every mage scores what their contract pays for the current popularities
 // (see contract::points_earned).
 void game::resolve_election(){
+	std::vector<int> points;
 	for (std::unique_ptr<player>& p : players) {
-		p->score_points(p->get_contract().points_earned(scores));
+		points.push_back(p->get_contract().points_earned(scores));
+		p->score_points(points.back());
 	}
-	observer().election_resolved(*this);
+	observer().election_resolved(*this, points);
 }

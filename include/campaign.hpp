@@ -72,9 +72,9 @@ public:
   void card_revealed(game &g, const player &p, const shenanigan &card) override;
   void spell_failed(game &g, const player &p, const shenanigan &card) override;
   void event_resolved(game &g, const event &e) override;
-  void memory_lapse_received(game &g, const player &target) override;
-  void ether_leaked(game &g, const player &target) override;
-  void immunity_triggered(game &g, const player &immune) override;
+  void memory_lapse_received(game &g, const player &caster, const player &target) override;
+  void ether_leaked(game &g, const player &caster, const player &target) override;
+  void immunity_triggered(game &g, const player &immune, const player &chooser) override;
   void turn_ended(game &g, turn_outcome outcome) override;
 
   long resolved_turns = 0;      // turns without rollback

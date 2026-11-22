@@ -323,7 +323,7 @@ size_t smart_player::opponent_target(const decision& d, const std::vector<size_t
 }
 
 // Entropy reversal: takes back the most useful card of the cosmos
-size_t smart_player::cosmos_card(const decision& d){
+size_t smart_player::cosmos_card(const decision& d, unsigned remaining){
 	std::vector<std::string> names;
 	for (size_t i = 0; i < d.g.cosmos_cards.size(); ++i) {
 		names.push_back(d.g.cosmos_cards.card_at(i).name());
@@ -332,7 +332,8 @@ size_t smart_player::cosmos_card(const decision& d){
 }
 
 // leaks the opponent with the most ether, as long as one has some
-size_t smart_player::ether_leak_target(const decision& d, const std::vector<size_t>& seats){
+size_t smart_player::ether_leak_target(const decision& d, const std::vector<size_t>& seats,
+                                       unsigned remaining){
 	size_t target = seats.size(); // stop
 	for (size_t i = 0; i < seats.size(); ++i) {
 		if (target == seats.size()

@@ -71,9 +71,9 @@ TEST_CASE("memory lapse to the mage with the most points; the best card from the
 	g.cosmos_cards.absorb(make_card("READING"));
 	g.cosmos_cards.absorb(make_card("IMMUNITY"));
 	g.cosmos_cards.absorb(make_card("ETHER"));
-	CHECK(p.choose_cosmos_card(g) == 2);   // no ether in reserve: the ether
+	CHECK(p.choose_cosmos_card(g, 1) == 2);   // no ether in reserve: the ether
 	give_ether(p, 2);
-	CHECK(p.choose_cosmos_card(g) == 1);   // otherwise Immunity, ranked above Reading
+	CHECK(p.choose_cosmos_card(g, 1) == 1);   // otherwise Immunity, ranked above Reading
 }
 
 TEST_CASE("careful reveal thanks to Reading") {

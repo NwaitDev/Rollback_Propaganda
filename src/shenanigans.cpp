@@ -11,6 +11,18 @@
 
 void ether::resolve(card_ptr self, game &g, player &owner) {
 	owner.store_ether(std::move(self));
+	g.observer().ether_stored(g, owner);
+}
+
+namespace {
+
+// the spell goes to the cosmos once resolved
+void discard(card_ptr self, game &g, player &caster) {
+	const shenanigan &spell = *self;
+	g.cosmos_cards.absorb(std::move(self));
+	g.observer().spell_discarded(g, caster, spell);
+}
+
 }
 
 void spell::resolve(card_ptr self, game &g, player &caster) {
@@ -22,10 +34,13 @@ void spell::resolve(card_ptr self, game &g, player &caster) {
 		for (card_ptr &spent : caster.spend_ether(ether)) {
 			g.cosmos_cards.absorb(std::move(spent));
 		}
+		if (ether > 0) {
+			g.observer().ether_spent(g, caster, ether);
+		}
 	} else {
 		g.observer().spell_failed(g, caster, *this);
 	}
-	g.cosmos_cards.absorb(std::move(self));
+	discard(std::move(self), g, caster);
 }
 
 
@@ -43,6 +58,12 @@ bool modify_chosen_propaganda(game &g, player &caster, int modification) {
 	}
 	if (!g.get_current_player().cancels_choice_by(g, caster)) {
 		target->modify(modification);
+		const std::deque<event> &present = g.present_events.show_events();
+		for (size_t i = 0; i < present.size(); ++i) {
+			if (&present[i] == target) {
+				g.observer().propaganda_modified(g, i, modification);
+			}
+		}
 	}
 	return true;
 }
@@ -79,6 +100,7 @@ public:
 
 protected:
 	bool effect(game &g, player &caster, unsigned ether) override {
+		g.observer().forced_reveal(g, 1 + static_cast<int>(ether));
 		g.reveal_x_more_events(1 + static_cast<int>(ether));
 		return true;
 	}
@@ -96,15 +118,15 @@ public:
 		player *target = caster.choose_opponent(g);
 		if (target == nullptr) {
 			g.observer().spell_failed(g, caster, *this);
-			g.cosmos_cards.absorb(std::move(self));
+			discard(std::move(self), g, caster);
 			return;
 		}
 		if (target->cancels_choice_by(g, caster)) {
-			g.cosmos_cards.absorb(std::move(self));
+			discard(std::move(self), g, caster);
 			return;
 		}
-		g.observer().memory_lapse_received(g, *target);
 		target->receive_card(std::move(self));
+		g.observer().memory_lapse_received(g, caster, *target);
 	}
 
 protected:
@@ -124,7 +146,9 @@ protected:
 		if (g.future_events.remaining_cards() == 0) {
 			return false;
 		}
-		caster.remember_future(g.future_events.peek(1 + ether));
+		std::vector<event> seen = g.future_events.peek(1 + ether);
+		caster.remember_future(seen);
+		g.observer().future_read(g, caster, seen);
 		return true;
 	}
 };
@@ -143,7 +167,9 @@ protected:
 			return false;
 		}
 		for (unsigned i = 0; i < 1 + ether && g.cosmos_cards.size() > 0; ++i) {
-			caster.receive_card(g.cosmos_cards.take(caster.choose_cosmos_card(g)));
+			caster.receive_card(g.cosmos_cards.take(caster.choose_cosmos_card(g, 1 + ether - i)));
+			const hand &cards = caster.get_hand();
+			g.observer().cosmos_card_taken(g, caster, cards.card_at(cards.get_nb_cards() - 1));
 		}
 		return true;
 	}
@@ -163,7 +189,7 @@ protected:
 			return false;
 		}
 		for (unsigned i = 0; i < 1 + ether; ++i) {
-			player *target = caster.choose_ether_to_leak(g);
+			player *target = caster.choose_ether_to_leak(g, 1 + ether - i);
 			if (target == nullptr) {
 				break;
 			}
@@ -172,7 +198,7 @@ protected:
 			}
 			if (!target->cancels_choice_by(g, caster)) {
 				g.cosmos_cards.absorb(target->lose_ether());
-				g.observer().ether_leaked(g, *target);
+				g.observer().ether_leaked(g, caster, *target);
 			}
 		}
 		return true;
@@ -194,6 +220,7 @@ public:
 protected:
 	bool effect(game &g, player &caster, unsigned ether) override {
 		caster.gain_immunity(1 + ether);
+		g.observer().immunity_gained(g, caster, 1 + ether);
 		return true;
 	}
 };
@@ -211,6 +238,7 @@ protected:
 		}
 		for (unsigned i = 0; i < 1 + ether && g.future_events.remaining_cards() > 0; ++i) {
 			g.past_events.pass(g.future_events.draw());
+			g.observer().event_skipped(g, g.past_events.show_events().back());
 		}
 		return true;
 	}

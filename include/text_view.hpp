@@ -27,9 +27,9 @@ public:
   void game_blocked(game &g) override;
   void turn_started(game &g) override;
   void event_revealed(game &g, const event &e) override;
-  void rolled_back(game &g, turn_outcome cause) override;
+  void rolled_back(game &g, turn_outcome cause, const std::vector<long> &returned) override;
   void collapse_revealed(game &g) override;
-  void election_resolved(game &g) override;
+  void election_resolved(game &g, const std::vector<int> &points) override;
 
 private:
   std::ostream &out;

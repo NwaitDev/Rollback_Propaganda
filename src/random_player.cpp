@@ -34,12 +34,13 @@ size_t random_player::opponent_target(const decision &d, const std::vector<size_
   return d.random_below(seats.size());
 }
 
-size_t random_player::cosmos_card(const decision &d) {
+size_t random_player::cosmos_card(const decision &d, unsigned remaining) {
   return d.random_below(d.g.cosmos_cards.size());
 }
 
 // leaks an ether of a random opponent, or stops at random
-size_t random_player::ether_leak_target(const decision &d, const std::vector<size_t> &seats) {
+size_t random_player::ether_leak_target(const decision &d, const std::vector<size_t> &seats,
+                                        unsigned remaining) {
   return d.random_below(seats.size() + 1);
 }
 

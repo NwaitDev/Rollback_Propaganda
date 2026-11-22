@@ -227,9 +227,9 @@ void game_stats::event_resolved(game& g, const event& e){
 	}
 }
 
-void game_stats::memory_lapse_received(game& g, const player& target){ memory_lapses++; }
-void game_stats::ether_leaked(game& g, const player& target){ ethers_leaked++; }
-void game_stats::immunity_triggered(game& g, const player& immune){ immunities++; }
+void game_stats::memory_lapse_received(game& g, const player& caster, const player& target){ memory_lapses++; }
+void game_stats::ether_leaked(game& g, const player& caster, const player& target){ ethers_leaked++; }
+void game_stats::immunity_triggered(game& g, const player& immune, const player& chooser){ immunities++; }
 
 void game_stats::turn_ended(game& g, turn_outcome outcome){
 	if (outcome == turn_outcome::RESOLVED) {

@@ -91,7 +91,7 @@ void text_logger::event_revealed(game &g, const event &e) {
   }
 }
 
-void text_logger::rolled_back(game &g, turn_outcome cause) {
+void text_logger::rolled_back(game &g, turn_outcome cause, const std::vector<long> &returned) {
   if (cause == turn_outcome::STEALTH_ROLLBACK) {
     out << "forced rollback!" << std::endl;
   }
@@ -101,6 +101,6 @@ void text_logger::collapse_revealed(game &g) {
   out << "forced execute!" << std::endl;
 }
 
-void text_logger::election_resolved(game &g) {
+void text_logger::election_resolved(game &g, const std::vector<int> &points) {
   out << "ELECTION EXECUTEE" << std::endl;
 }
